@@ -1,0 +1,2128 @@
+<!DOCTYPE html>
+<!--
+  Levantamento de Deficiências Tecnológicas em Automação — VERSÃO OFFLINE
+  Embrapa Caprinos e Ovinos
+
+  • Abra este arquivo no navegador (Chrome, Edge ou Firefox). Não precisa de internet.
+  • As respostas ficam salvas no navegador deste aparelho.
+  • Em "Gerenciar respostas": exporte os arquivos (.zip) ou envie à planilha quando houver internet.
+  • Logo: coloque a imagem com o nome logo-embrapa.png na mesma pasta deste arquivo.
+  • Arquivo gerado a partir de Code.gs, index.html, styles.html e app.html.
+-->
+<html lang="pt-BR">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Levantamento de Deficiências Tecnológicas (offline)</title>
+  <meta name="theme-color" content="#005ca9">
+  <style>
+  /* Identidade visual Embrapa: azul padrão (ref. Pantone 287) e verde padrão (ref. Pantone 356).
+     Alfabeto padrão: Univers (alternativa: Zurich). Arial é o último recurso quando nenhuma está instalada. */
+  :root{
+    --blue:#005ca9;--blue-dark:#00447c;--blue-soft:#edf6fc;
+    --green:#00843d;--green-dark:#006b31;--green-soft:#eaf5ee;
+    --ink:#24313d;--muted:#667784;--line:#dbe3e8;--bg:#f3f6f8;--card:#fff;
+    --danger:#b42318;--danger-soft:#fff1f0;--star:#f2b01e;
+    --shadow:0 10px 28px rgba(31,52,67,.09);
+    --font:"Univers","Univers LT Std","Univers Next Pro","Zurich BT","Zurich",Arial,"Helvetica Neue",sans-serif;
+    --thumb:28px;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);font-family:var(--font);font-weight:500;color:var(--ink);line-height:1.45}
+  strong,b{font-weight:700}
+
+  /* Cabeçalho */
+  .topbar{height:8px;background:linear-gradient(90deg,var(--blue) 0 55%,var(--green) 55%)}
+  .shell{max-width:1080px;margin:0 auto;padding:22px 16px 48px}
+  .brand{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 22px;box-shadow:var(--shadow);display:flex;gap:20px;align-items:center}
+  .brand img{width:200px;height:auto;display:block;flex:none}
+  .logo-fallback{flex:none;font-size:34px;font-weight:800;font-style:italic;color:var(--blue);letter-spacing:-.5px;padding-right:18px;border-right:4px solid var(--green)}
+  .brand h1{font-size:21px;line-height:1.25;margin:0 0 5px;color:var(--blue-dark);font-weight:700;font-style:italic}
+  .brand p{margin:0;color:var(--muted);font-size:13px}
+
+  /* Progresso */
+  .progress-wrap{margin:18px 0 12px}
+  .progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px}
+  .progress{height:7px;border-radius:99px;background:#dfe8ed;overflow:hidden}
+  .progress>div{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));width:20%;transition:width .25s}
+
+  /* Cartões e perguntas */
+  .step{display:none}.step.active{display:block}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;margin-top:14px;box-shadow:var(--shadow)}
+  .section-title{font-size:19px;color:var(--blue-dark);margin:0 0 5px;font-weight:700;font-style:italic}
+  .section-note{margin:0 0 20px;color:var(--muted);font-size:14px}
+  .question{margin:22px 0 0;border-radius:10px;transition:outline-color .15s}
+  .question:first-child{margin-top:0}
+  #tecnicoBlock>.question:first-child{margin-top:22px}
+  .qtitle{font-weight:700;margin-bottom:9px}
+  .required{color:var(--danger);font-size:12px;font-weight:700;margin-left:5px;white-space:nowrap}
+  .hint{font-size:12px;color:var(--muted);margin-top:5px}
+  .privacy{font-size:12px;color:var(--muted);background:#f4f8fa;border-radius:10px;padding:11px;margin-top:14px}
+
+  /* Campos */
+  input[type=text],textarea,select{width:100%;border:1px solid #cbd6dd;border-radius:10px;padding:11px 12px;font:inherit;background:#fff;color:var(--ink);outline:none}
+  input[type=text]:focus,textarea:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,92,169,.12)}
+  textarea{min-height:94px;resize:vertical}
+  .task-inputs{display:grid;gap:10px}
+  .task-input{display:flex;align-items:center;gap:10px}
+  .task-input .num{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--blue-soft);color:var(--blue-dark);font-weight:700;font-size:14px}
+
+  /* Listas de marcação */
+  .search{margin-bottom:8px}
+  .checks{border:1px solid var(--line);border-radius:12px;max-height:300px;overflow:auto;padding:8px}
+  .checks-open{max-height:none}
+  .check-row{display:flex;gap:10px;align-items:flex-start;padding:8px;border-radius:8px;cursor:pointer}
+  .check-row:hover{background:#f4f8fa}
+  .check-row input{margin-top:3px;accent-color:var(--blue);flex:none}
+  .other-box{margin-top:9px}
+  .infra-extra{margin:0 8px 8px 34px}
+  .radio-group{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
+  .radio{border:1px solid #d3dde2;border-radius:10px;padding:9px;display:flex;gap:8px;align-items:flex-start;cursor:pointer;background:#fff}
+  .radio:has(input:checked){border-color:var(--blue);background:var(--blue-soft)}
+  .radio input{margin-top:3px;accent-color:var(--blue)}
+
+  /* Estrelas (preenchimento acumulado, centralizado) */
+  .centered-control{text-align:center}
+  .stars{display:flex;justify-content:center;gap:6px;margin:10px 0 4px}
+  .star{border:0;background:transparent;font-size:40px;line-height:1;cursor:pointer;color:#c9d2d8;padding:2px 3px;transition:color .12s,transform .12s;font-family:Arial,sans-serif}
+  .star.filled{color:var(--star)}
+  .star:hover{transform:scale(1.12)}
+  .star:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:8px}
+  .scale-value{display:inline-block;font-weight:700;color:var(--blue-dark);margin-top:6px;font-size:14px}
+  .scale-value.muted{color:var(--muted);font-weight:500}
+
+  /* Escalas Likert com controle deslizante (centralizadas) */
+  .likert{max-width:560px;margin:12px auto 0;text-align:center}
+  .likert-row{display:flex;align-items:flex-start;gap:12px}
+  .likert-end{flex:none;width:38px;font-size:28px;line-height:1;padding-top:6px;opacity:.5;transition:opacity .15s,transform .15s;user-select:none}
+  .likert-end.active{opacity:1;transform:scale(1.18)}
+  .slider-box{position:relative;flex:1;min-width:0}
+  .range{-webkit-appearance:none;appearance:none;display:block;width:100%;height:10px;margin:14px 0 8px;border-radius:99px;outline:none;cursor:pointer;background:linear-gradient(90deg,var(--blue) 0 var(--pct,0%),#dfe8ed var(--pct,0%) 100%)}
+  .range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:var(--thumb);height:var(--thumb);border-radius:50%;background:#fff;border:4px solid var(--thumb-color,var(--blue));box-shadow:0 2px 6px rgba(0,0,0,.22);cursor:grab}
+  .range::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:4px solid var(--thumb-color,var(--blue));box-shadow:0 2px 6px rgba(0,0,0,.22);cursor:grab}
+  .range::-moz-range-track{background:transparent;height:10px}
+  .range:focus-visible{box-shadow:0 0 0 4px rgba(0,92,169,.18)}
+  .likert-sat .range{background:linear-gradient(90deg,#d64545 0%,#e5793f 25%,#e8bd4f 50%,#8cbf5a 75%,#3fa45f 100%)}
+  .likert.unset .range{--thumb-color:#aab7c0}
+  .likert.unset .range::-webkit-slider-thumb{background:#f4f7f9;border-style:dashed}
+  .likert.unset .range::-moz-range-thumb{background:#f4f7f9;border-style:dashed}
+  .likert-sat.unset .range{filter:saturate(.35);opacity:.7}
+  .ticks,.emojis{position:relative}
+  .ticks{height:18px;font-size:12px;color:var(--muted)}
+  .ticks span,.emojis span{position:absolute;top:0;transform:translateX(-50%)}
+  .ticks span.on{color:var(--blue-dark);font-weight:700}
+  .emojis{height:32px}
+  .emojis span{font-size:26px;line-height:1;opacity:.4;transition:opacity .15s,transform .15s;user-select:none}
+  .emojis span.active{opacity:1;transform:translateX(-50%) scale(1.2)}
+  .likert-legend{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);margin-top:2px}
+
+  /* Cartões de tarefa */
+  .task-card{border:1px solid #d9e2e7;border-left:5px solid var(--green);border-radius:13px;padding:17px;margin:15px 0;background:#fbfdfc}
+  .task-name{font-size:17px;font-weight:700;color:var(--blue-dark);margin-bottom:15px}
+  .tag{display:inline-block;font-size:11px;font-weight:700;background:var(--green-soft);color:var(--green-dark);border-radius:99px;padding:3px 9px;margin-left:6px;vertical-align:middle;white-space:nowrap}
+
+  /* Tabela de tecnologias */
+  .tech-group{margin-top:20px}
+  .tech-group h3{font-size:15px;color:var(--green-dark);border-bottom:2px solid #e5eee8;padding-bottom:7px;margin:0 0 4px;font-style:italic}
+  .tech-row{border:1px solid #dbe3e8;border-radius:12px;margin:9px 0;padding:12px;background:#fff}
+  .tech-name{font-weight:700;margin-bottom:9px}
+  .tech-options{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+  .tech-opt{border:1px solid #d3dde2;border-radius:8px;text-align:center;padding:7px 4px;font-size:11px;cursor:pointer;background:#fff}
+  .tech-opt input{display:block;margin:0 auto 4px;accent-color:var(--blue)}
+  .tech-opt strong{display:block;font-size:14px;color:var(--blue-dark)}
+  .tech-opt.selected{border-color:var(--blue);background:var(--blue-soft)}
+  .tech-reason{margin-top:8px}
+
+  /* Validação */
+  .question.invalid,.tech-row.invalid{outline:2px solid #f0b7b2;outline-offset:6px}
+  .tech-row.invalid{outline-offset:0;border-color:#f0b7b2;background:var(--danger-soft)}
+  .question.invalid>.qtitle{color:var(--danger)}
+  .question.invalid input[type=text],.question.invalid textarea,.question.invalid select,.question.invalid .checks{border-color:#e49a93}
+
+  /* Navegação e estados */
+  .nav{display:flex;justify-content:space-between;gap:10px;margin-top:18px}
+  .btn{border:0;border-radius:10px;padding:12px 18px;font:inherit;font-weight:700;cursor:pointer}
+  .btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue-dark)}
+  .btn-secondary{background:#e9eff2;color:var(--ink)}.btn-secondary:hover{background:#dde6ea}
+  .btn-success{background:var(--green);color:#fff}.btn-success:hover{background:var(--green-dark)}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .loading{text-align:center;color:var(--muted);padding:10px}
+  .error{display:none;background:var(--danger-soft);border:1px solid #f0b7b2;color:#8d2118;border-radius:10px;padding:11px;margin-top:12px}
+  .error.show{display:block}
+  .success{text-align:center}
+  .success-icon{width:62px;height:62px;border-radius:50%;background:var(--green-soft);color:var(--green);display:grid;place-items:center;font-size:30px;font-weight:800;margin:6px auto 14px}
+  .success .id{font-size:24px;font-weight:800;color:var(--blue-dark);margin:14px 0}
+  .footer{text-align:center;color:var(--muted);font-size:12px;padding-top:22px}
+
+  @media(max-width:720px){
+    .shell{padding-left:10px;padding-right:10px}
+    .brand{align-items:flex-start;flex-direction:column;gap:12px;padding:16px}
+    .brand img{width:150px}
+    .brand h1{font-size:17px}
+    .card{padding:18px}
+    .tech-options{grid-template-columns:1fr 1fr}
+    .nav{position:sticky;bottom:0;background:rgba(243,246,248,.96);padding:10px 0;margin-bottom:-10px;z-index:5}
+    .btn{flex:1}
+    .star{font-size:36px}
+    .likert-row{gap:6px}
+    .likert-end{width:30px;font-size:24px}
+  }
+</style>
+
+<style>
+  /* ---- Versão offline ---- */
+  .offline-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-top:12px;font-size:13px;color:var(--muted);box-shadow:var(--shadow)}
+  .offline-bar #offlineSummary{flex:1;min-width:200px}
+  .net{display:inline-flex;align-items:center;gap:6px;font-weight:700;white-space:nowrap}
+  .net::before{content:"";width:9px;height:9px;border-radius:50%;background:#aab7c0}
+  .net.on{color:var(--green-dark)}.net.on::before{background:var(--green)}
+  .btn-sm{padding:8px 12px;font-size:13px}
+  .btn-danger{background:#fff;color:var(--danger);border:1px solid #f0b7b2}.btn-danger:hover{background:var(--danger-soft)}
+  .panel-overlay{position:fixed;inset:0;background:rgba(20,35,45,.5);overflow:auto;z-index:50;padding:16px}
+  .data-panel{max-width:920px;margin:10px auto 40px}
+  .panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+  .stat{background:#f4f8fa;border-radius:12px;padding:12px;text-align:center}
+  .stat strong{display:block;font-size:24px;color:var(--blue-dark)}
+  .stat span{font-size:12px;color:var(--muted)}
+  .action{display:flex;justify-content:space-between;align-items:center;gap:14px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:10px}
+  .action p{margin:3px 0 0}
+  .action .btn{flex:none}
+  label.btn{display:inline-block;text-align:center}
+  .panel-msg{display:none;border-radius:10px;padding:11px;margin-top:12px;font-size:14px}
+  .panel-msg.show{display:block}
+  .panel-msg.ok{background:var(--green-soft);border:1px solid #b7dcc4;color:var(--green-dark)}
+  .panel-msg.bad{background:var(--danger-soft);border:1px solid #f0b7b2;color:#8d2118}
+  .panel-msg.info{background:var(--blue-soft);border:1px solid #bcd6ec;color:var(--blue-dark)}
+  .settings{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+  .settings summary{cursor:pointer;font-weight:700;color:var(--blue-dark)}
+  .settings .qtitle{margin-top:12px;display:block}
+  .resp-list{margin-top:16px}
+  .resp-list h3{font-size:15px;color:var(--green-dark);margin:0 0 6px;font-style:italic}
+  .resp-table{width:100%;border-collapse:collapse;font-size:13px}
+  .resp-table th,.resp-table td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
+  .resp-table th{color:var(--muted);font-weight:700}
+  .badge{display:inline-block;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700}
+  .badge.sent{background:var(--green-soft);color:var(--green-dark)}
+  .badge.pending{background:#fff4dd;color:#8a5a00}
+  @media(max-width:720px){
+    .stats{grid-template-columns:1fr 1fr 1fr;gap:6px}.stat strong{font-size:19px}
+    .action{flex-direction:column;align-items:stretch}
+    .panel-head{flex-direction:column}
+    .resp-table .hide-sm{display:none}
+  }
+</style>
+
+</head>
+<body>
+<div class="topbar"></div>
+<div class="shell">
+
+  <header class="brand">
+    <img id="logo" src="logo-embrapa.png" alt="Embrapa"
+         onerror="this.hidden=true;document.getElementById('logoFallback').hidden=false;">
+    <div class="logo-fallback" id="logoFallback" hidden>Embrapa</div>
+    <div class="brand-text">
+      <h1>Levantamento de Deficiências Tecnológicas em Automação na Embrapa Caprinos e Ovinos</h1>
+      <p>Instrumento anônimo para identificação de gargalos, oportunidades e demandas de automação.</p>
+    </div>
+  </header>
+
+  <div class="offline-bar">
+    <span class="net" id="netStatus">sem internet</span>
+    <span id="offlineSummary">Modo offline</span>
+    <button type="button" class="btn btn-secondary btn-sm" id="openPanelBtn">Gerenciar respostas</button>
+  </div>
+  <div class="error show" id="storageWarning" hidden>Este navegador não está permitindo salvar dados no aparelho (por exemplo, em janela anônima). As respostas serão baixadas como arquivo .json a cada envio — guarde esses arquivos.</div>
+
+  <div class="panel-overlay" id="panelOverlay" hidden>
+    <section class="card data-panel" role="dialog" aria-modal="true" aria-labelledby="panelTitle">
+      <div class="panel-head">
+        <div>
+          <h2 class="section-title" id="panelTitle">Respostas salvas neste aparelho</h2>
+          <p class="section-note" style="margin:0">As respostas ficam guardadas no navegador deste aparelho até serem exportadas ou enviadas à planilha.</p>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" id="closePanelBtn">Voltar ao formulário</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><strong id="statTotal">0</strong><span>salvas</span></div>
+        <div class="stat"><strong id="statPending">0</strong><span>não enviadas à planilha</span></div>
+        <div class="stat"><strong id="statDevice">----</strong><span>código do aparelho</span></div>
+      </div>
+
+      <div class="action">
+        <div><strong>Exportar arquivos</strong>
+          <p class="hint">Baixa um .zip com levantamento_automacao_latest.json, respondentes_latest.csv, tarefas_latest.csv, tecnologias_latest.csv e uma cópia .json de cada resposta.</p></div>
+        <button type="button" class="btn btn-primary" id="exportBtn">Exportar (.zip)</button>
+      </div>
+      <div class="action">
+        <div><strong>Enviar para a planilha</strong>
+          <p class="hint">Precisa de internet. Respostas que já estão na planilha não são duplicadas.</p></div>
+        <button type="button" class="btn btn-success" id="syncBtn">Enviar pendentes</button>
+      </div>
+      <div class="action">
+        <div><strong>Importar respostas</strong>
+          <p class="hint">Carrega arquivos .json gerados por este formulário (cópias de segurança ou o levantamento_automacao_latest.json de outro aparelho).</p></div>
+        <label class="btn btn-secondary">Escolher arquivos<input type="file" id="importInput" accept=".json,application/json" multiple hidden></label>
+      </div>
+
+      <div class="panel-msg" id="panelMsg" role="status"></div>
+
+      <details class="settings">
+        <summary>Configurações</summary>
+        <label class="qtitle" for="webAppUrl">URL do Aplicativo da Web (a mesma do formulário on-line, terminada em /exec)</label>
+        <input type="text" id="webAppUrl" placeholder="https://script.google.com/macros/s/.../exec">
+        <label class="check-row"><input type="checkbox" id="backupToggle"> <span>Baixar uma cópia de segurança (.json) de cada resposta no momento em que ela é salva</span></label>
+        <div style="margin-top:12px"><button type="button" class="btn btn-danger btn-sm" id="clearBtn">Apagar as respostas deste aparelho</button></div>
+      </details>
+
+      <div class="resp-list" id="respList"></div>
+    </section>
+  </div>
+
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-label"><span id="progressText">Etapa 1 de 5</span><span id="progressPct">20%</span></div>
+    <div class="progress"><div id="progressBar"></div></div>
+  </div>
+
+  <form id="survey" novalidate autocomplete="off">
+
+    <!-- 1. Apresentação e perfil -->
+    <section class="step" data-step="perfil">
+      <div class="card">
+        <h2 class="section-title">Apresentação</h2>
+        <p class="section-note">Este formulário possui o intuito de levantar gargalos tecnológicos na área de automação em diferentes setores que estão direta ou indiretamente relacionados às atuações nas fazendas e nos campos experimentais. Este formulário é anônimo, ou seja, nenhuma informação pessoal será coletada, e a ideia é que, com base nas respostas, a Embrapa Caprinos e Ovinos construa um documento direcionador para projetos de pesquisa em curto, médio e longo prazo na área de Automação.</p>
+        <div class="privacy">Não são solicitados nome, e-mail, CPF, matrícula ou outros identificadores pessoais.</div>
+
+        <div class="question" data-q="perfil">
+          <div class="qtitle">Você é:<span class="required">OBRIGATÓRIO</span></div>
+          <div class="radio-group">
+            <label class="radio"><input type="radio" name="perfil" value="Assistente/Técnico"> Assistente/Técnico</label>
+            <label class="radio"><input type="radio" name="perfil" value="Analista/Pesquisador"> Analista/Pesquisador</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Identificação -->
+    <section class="step" data-step="identificacao">
+      <div class="card">
+        <h2 class="section-title">Identificação</h2>
+        <p class="section-note">Selecione todas as áreas/setores aplicáveis. Use a busca para localizar uma opção rapidamente.</p>
+
+        <div class="question" data-q="areas">
+          <div class="qtitle">Em qual área/setor você atua hoje?<span class="required">OBRIGATÓRIO</span></div>
+          <input type="text" class="search" id="areaSearch" placeholder="Pesquisar área ou setor…">
+          <div class="checks" id="areaList"></div>
+          <div class="hint" id="areaEmpty" hidden>Nenhuma área encontrada para essa busca.</div>
+          <div class="other-box" id="otherArea" hidden>
+            <input type="text" id="areaOther" maxlength="200" placeholder="Especifique a outra área/setor…">
+          </div>
+          <div class="hint">Você pode marcar mais de uma opção.</div>
+        </div>
+
+        <div id="tecnicoBlock" hidden>
+          <div class="question" data-q="training">
+            <div class="qtitle">Quando foi o seu último treinamento com equipamentos ou sistemas eletrônicos/digitais?<span class="required">OBRIGATÓRIO</span></div>
+            <select id="training"></select>
+          </div>
+
+          <div class="question" data-q="skill">
+            <div class="qtitle">Como você avalia as suas habilidades técnicas com celular e computador no trabalho?<span class="required">OBRIGATÓRIO</span></div>
+            <div class="stars" id="skillStars" role="radiogroup" aria-label="Habilidades técnicas, de 1 a 5 estrelas"></div>
+            <div class="centered-control"><span id="skillValue" class="scale-value muted">Toque em uma estrela para avaliar</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Tarefas de campo -->
+    <section class="step" data-step="tarefas">
+      <div class="card">
+        <h2 class="section-title">Tarefas de campo</h2>
+        <p class="section-note">Preencha de 1 a 3 tarefas em cada pergunta, uma por campo. Se a mesma tarefa aparecer nas duas perguntas, ela será considerada uma única vez nas avaliações seguintes.</p>
+
+        <div class="question" data-q="tempo">
+          <div class="qtitle">Cite de 1 até 3 tarefas relacionadas a atividades de campo que mais consomem o seu tempo.<span class="required">PELO MENOS 1</span></div>
+          <div class="task-inputs">
+            <div class="task-input"><span class="num">1</span><input type="text" id="tempo_1" maxlength="300" placeholder="Descreva a tarefa…" aria-label="Tarefa 1 que mais consome tempo"></div>
+            <div class="task-input"><span class="num">2</span><input type="text" id="tempo_2" maxlength="300" placeholder="Descreva a tarefa…" aria-label="Tarefa 2 que mais consome tempo"></div>
+            <div class="task-input"><span class="num">3</span><input type="text" id="tempo_3" maxlength="300" placeholder="Descreva a tarefa…" aria-label="Tarefa 3 que mais consome tempo"></div>
+          </div>
+        </div>
+
+        <div class="question" data-q="esforco">
+          <div class="qtitle">Cite de 1 até 3 tarefas relacionadas a atividades de campo que demandam maior frequência ou esforço físico.<span class="required">PELO MENOS 1</span></div>
+          <div class="task-inputs">
+            <div class="task-input"><span class="num">1</span><input type="text" id="esforco_1" maxlength="300" placeholder="Descreva a tarefa…" aria-label="Tarefa 1 de maior frequência ou esforço físico"></div>
+            <div class="task-input"><span class="num">2</span><input type="text" id="esforco_2" maxlength="300" placeholder="Descreva a tarefa…" aria-label="Tarefa 2 de maior frequência ou esforço físico"></div>
+            <div class="task-input"><span class="num">3</span><input type="text" id="esforco_3" maxlength="300" placeholder="Descreva a tarefa…" aria-label="Tarefa 3 de maior frequência ou esforço físico"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Diagnóstico das tarefas + barreiras -->
+    <section class="step" data-step="diagnostico">
+      <div class="card">
+        <h2 class="section-title">Tarefas e deficiências tecnológicas</h2>
+        <p class="section-note">Para cada tarefa mencionada, descreva os problemas e avalie a situação atual.</p>
+        <div id="taskDetails"></div>
+
+        <div class="question" data-q="infra">
+          <div class="qtitle">Quais são as principais barreiras presentes nas atividades desenvolvidas em campo:</div>
+          <div class="checks checks-open" id="infraList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Tecnologias (somente Analista/Pesquisador) -->
+    <section class="step" data-step="tecnologias">
+      <div class="card">
+        <h2 class="section-title">Tecnologias e utilização</h2>
+        <p class="section-note"><strong>Leia cada item com atenção e registre a situação com o código abaixo.</strong></p>
+        <div class="privacy"><strong>0</strong> = não conheço · <strong>1</strong> = conheço, mas não há na unidade · <strong>2</strong> = conheço, existe na unidade, mas nunca utilizei · <strong>3</strong> = uso ocasionalmente · <strong>4</strong> = uso na rotina · <strong>5</strong> = não consigo opinar<br>Em <strong>Conectividade e energia</strong>, o código 1 significa "conheço, mas não há no meu setor".</div>
+        <div id="techTable"></div>
+
+        <div class="question" data-q="dataUse">
+          <div class="qtitle">Como os dados coletados em campo são registrados e guardados?<span class="required">OBRIGATÓRIO</span></div>
+          <textarea id="dataUse" placeholder="Descreva como os dados são registrados e armazenados…"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final. Idealizações -->
+    <section class="step" data-step="final">
+      <div class="card">
+        <h2 class="section-title">Idealizações tecnológicas na área de automação</h2>
+        <p class="section-note">Use este espaço para registrar ideias, necessidades e melhorias que possam orientar futuras ações de pesquisa, desenvolvimento e inovação.</p>
+
+        <div class="question">
+          <div class="qtitle">Se você pudesse adquirir uma ferramenta/tecnologia para auxiliar sua atuação em tarefas no campo, qual seria?</div>
+          <textarea id="idea" placeholder="Descreva a ferramenta ou tecnologia…"></textarea>
+        </div>
+        <div class="question">
+          <div class="qtitle">Que mudança pequena (implementação de um novo sistema, sensor, maquinário, dispositivo etc.) facilitaria a execução do seu trabalho no campo amanhã?</div>
+          <textarea id="smallChange" placeholder="Descreva a mudança…"></textarea>
+        </div>
+        <div class="question">
+          <div class="qtitle">Área livre para comentários, observações, opiniões, sugestões etc.</div>
+          <textarea id="comments" placeholder="Escreva aqui…"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <div class="error" id="error" role="alert"></div>
+    <div class="nav">
+      <button type="button" class="btn btn-secondary" id="prevBtn">Voltar</button>
+      <button type="button" class="btn btn-primary" id="nextBtn">Continuar</button>
+      <button type="button" class="btn btn-success" id="submitBtn" hidden>Enviar formulário</button>
+    </div>
+    <div class="loading" id="loading" hidden>Salvando resposta…</div>
+  </form>
+
+  <section class="card success" id="successScreen" hidden>
+    <div class="success-icon">✓</div>
+    <h2 class="section-title">Resposta registrada com sucesso</h2>
+    <p>A entrevista foi salva na base estruturada.</p>
+    <div class="id" id="responseId"></div>
+    <p class="hint">Obrigado pela participação. Esta janela já pode ser fechada.</p>
+  </section>
+
+  <footer class="footer">Levantamento de P&amp;DI · Embrapa Caprinos e Ovinos</footer>
+</div>
+
+<script>
+/* ---- Código do servidor (Code.gs), reutilizado para validar e gerar os arquivos ---- */
+var Session = { getScriptTimeZone: function () { return Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Fortaleza"; } };
+/**
+ * Levantamento de Deficiências Tecnológicas em Automação
+ * Embrapa Caprinos e Ovinos — backend (Google Apps Script, runtime V8)
+ *
+ * Arquivos do projeto: Code.gs, index.html, styles.html, app.html
+ */
+
+const APP = {
+  title: 'Levantamento de Deficiências Tecnológicas em Automação na Embrapa Caprinos e Ovinos',
+  formVersion: '2.1',
+  spreadsheetProperty: 'SPREADSHEET_ID',
+  folderProperty: 'EXPORT_FOLDER_ID',
+  counterProperty: 'RESPONSE_COUNTER',
+  logoProperty: 'LOGO_URL',
+  defaultLogoUrl: 'https://logodownload.org/wp-content/uploads/2018/04/embrapa-logo-5.png',
+  timezone: Session.getScriptTimeZone() || 'America/Fortaleza',
+  maxText: 5000
+};
+
+const PERFIL_TECNICO = 'Assistente/Técnico';
+const PERFIL_ANALISTA = 'Analista/Pesquisador';
+
+/**
+ * Catálogo único do formulário. O mesmo objeto é enviado para a página
+ * (index.html) e usado aqui para validar as respostas no servidor.
+ */
+const CATALOG = {
+  perfis: [PERFIL_TECNICO, PERFIL_ANALISTA],
+  // Áreas em ordem alfabética; "Outro"/"Outros" sempre por último.
+  areas: {
+    'Assistente/Técnico': [
+      'Administrativa (com relação direta aos trabalhos no campo)',
+      'Centro de Caprinos Leiteiros',
+      'Clínica de Pequenos Ruminantes',
+      'Fábrica de Ração',
+      'Núcleo de Caprinos de Conservação',
+      'Núcleo de Ovinos de Conservação',
+      'Produção de Forragem',
+      'SEPOC (Setor de Produção de Ovinos de Corte)',
+      'Outro'
+    ],
+    'Analista/Pesquisador': [
+      'Bem estar animal', 'Bioclimatologia', 'Biologia Avançada', 'Biologia Molecular',
+      'Bioquímica', 'Biotecnologia da reprodução', 'Ciência de Dados', 'Ciência dos Solos',
+      'Ciência e Tecnologia de Alimentos', 'Cirurgia Veterinária', 'Clínica', 'Economia',
+      'Forragicultura', 'Genética', 'Gestão de Campos Experimentais', 'Melhoramento animal',
+      'Melhoramento vegetal', 'Nutrição', 'Proteômica', 'Sanidade',
+      'Sistema de Produção de Caprino Leiteiro', 'Sistema de Produção de Caprinos e Ovinos de Corte',
+      'Sociologia Rural', 'Tecnologia de Alimentos Lácteos', 'Outros'
+    ]
+  },
+  treinamentos: [
+    'Nunca ocorreu',
+    'Menos de 7 dias (1 semana)',
+    'Entre 7 e 30 dias (1 mês)',
+    'Entre 1 e 3 meses',
+    'Entre 3 e 6 meses',
+    'Entre 6 e 12 meses (1 ano)',
+    'Entre 1 e 5 anos',
+    'Acima de 5 anos'
+  ],
+  barreiras: [
+    'Falta energia elétrica estável no setor.',
+    'O sinal de internet ou de celular no setor é insuficiente.',
+    'O setor apresenta muita poeira, calor e umidade.',
+    'O setor apresenta problemas na infraestrutura física das instalações (ex.: cercas inadequadas, espaços reduzidos para equipamentos, falta de proteção contra chuva etc.).',
+    'Ausência de equipamento.'
+  ],
+  // Opção de barreira que abre o campo (não obrigatório) "Qual equipamento?"
+  barreiraEquipamento: 'Ausência de equipamento.',
+  modos: ['Manual', 'Parcial (semiautomatizado)', 'Totalmente automatizado'],
+  // Códigos da tabela de tecnologias (0 a 5)
+  situacoes: [
+    'Não conheço',
+    'Conheço, mas não há na unidade',
+    'Conheço, existe na unidade, mas nunca utilizei',
+    'Uso ocasionalmente',
+    'Uso na rotina',
+    'Não consigo opinar'
+  ],
+  // Textos diferentes para alguma categoria (código: texto)
+  situacoesPorCategoria: {
+    'Conectividade e energia': { 1: 'Conheço, mas não há no meu setor' }
+  },
+  tecnologias: [
+    { categoria: 'Identificação e pesagem', tecnologia: 'Leitor de brinco eletrônico (RFID)' },
+    { categoria: 'Identificação e pesagem', tecnologia: 'Balança eletrônica conectada a leitor' },
+    { categoria: 'Identificação e pesagem', tecnologia: 'Plataforma de pesagem espontânea (walk-over-weigh)' },
+    { categoria: 'Identificação e pesagem', tecnologia: 'Portão de apartação automático' },
+    { categoria: 'Monitoramento animal', tecnologia: 'Colar GPS' },
+    { categoria: 'Monitoramento animal', tecnologia: 'Acelerômetro ou sensor de atividade' },
+    { categoria: 'Monitoramento animal', tecnologia: 'Câmeras com análise de imagem' },
+    { categoria: 'Monitoramento animal', tecnologia: 'Termografia infravermelha' },
+    { categoria: 'Monitoramento animal', tecnologia: 'Estação meteorológica ou sensor de temperatura e umidade' },
+    { categoria: 'Alimentação e água', tecnologia: 'Alimentador ou distribuidor automático' },
+    { categoria: 'Alimentação e água', tecnologia: 'Bebedouro com boia, medidor de vazão ou sensor de nível' },
+    { categoria: 'Alimentação e água', tecnologia: 'Bombeamento solar' },
+    { categoria: 'Reprodução e ordenha', tecnologia: 'Detecção automatizada de cio' },
+    { categoria: 'Reprodução e ordenha', tecnologia: 'Ordenha mecânica com medidor eletrônico de leite' },
+    { categoria: 'Reprodução e ordenha', tecnologia: 'Ordenha robotizada' },
+    { categoria: 'Forrageiras', tecnologia: 'Sensoriamento remoto (satélite ou drone) para biomassa' },
+    { categoria: 'Forrageiras', tecnologia: 'Medidor automático de altura ou massa de pasto' },
+    { categoria: 'Forrageiras', tecnologia: 'Sensor de umidade do solo' },
+    { categoria: 'Forrageiras', tecnologia: 'Irrigação automatizada' },
+    { categoria: 'Forrageiras', tecnologia: 'Ensilagem mecanizada' },
+    { categoria: 'Forrageiras', tecnologia: 'Fenação mecanizada' },
+    { categoria: 'Cercas e pastejo', tecnologia: 'Cerca elétrica' },
+    { categoria: 'Cercas e pastejo', tecnologia: 'Cerca virtual' },
+    { categoria: 'Registro de dados', tecnologia: 'Planilha' },
+    { categoria: 'Registro de dados', tecnologia: 'Software de registro' },
+    { categoria: 'Registro de dados', tecnologia: 'Aplicativo de celular para registro em campo' },
+    { categoria: 'Conectividade e energia', tecnologia: 'Internet ou rede sem fio no ponto de trabalho' },
+    { categoria: 'Conectividade e energia', tecnologia: 'Energia solar ou elétrica estável no ponto de uso' }
+  ]
+};
+
+/** Cabeçalhos das abas operacionais. */
+const SHEETS = {
+  Respostas: [
+    'response_id', 'submitted_at', 'versao_formulario', 'perfil', 'areas', 'area_outro',
+    'treinamento', 'habilidade_tech_1_5',
+    'tarefa_tempo_1', 'tarefa_tempo_2', 'tarefa_tempo_3',
+    'tarefa_esforco_1', 'tarefa_esforco_2', 'tarefa_esforco_3',
+    'n_tarefas_unicas', 'barreiras_infraestrutura', 'barreira_equipamento', 'dados_campo',
+    'ferramenta_ideal', 'mudanca_amanha', 'comentarios'
+  ],
+  Tarefas: [
+    'response_id', 'task_id', 'tarefa', 'origem_tempo', 'origem_esforco', 'origem',
+    'problemas', 'importancia_1_5', 'satisfacao_1_5', 'modo_execucao', 'solucao_improvisada'
+  ],
+  Tecnologias: [
+    'response_id', 'tech_id', 'categoria', 'tecnologia', 'situacao_0_5',
+    'situacao_descricao', 'motivo_situacao_2'
+  ]
+};
+
+/** Colunas gravadas como número (as demais são gravadas como texto puro). */
+const NUMERIC_COLUMNS = {
+  habilidade_tech_1_5: true, n_tarefas_unicas: true,
+  importancia_1_5: true, satisfacao_1_5: true, situacao_0_5: true
+};
+
+/** Texto de um código da tabela de tecnologias, considerando exceções por categoria. */
+function situacaoLabel_(categoria, codigo) {
+  const especial = CATALOG.situacoesPorCategoria[categoria];
+  return (especial && especial[codigo]) || CATALOG.situacoes[codigo];
+}
+
+/* ------------------------------------------------------------------ */
+/* Web App                                                             */
+/* ------------------------------------------------------------------ */
+
+function doGet() {
+  const template = HtmlService.createTemplateFromFile('index');
+  template.logoUrl = PropertiesService.getScriptProperties().getProperty(APP.logoProperty) || APP.defaultLogoUrl;
+  template.catalogJson = JSON.stringify(CATALOG).replace(/</g, '\\u003c');
+  return template.evaluate()
+    .setTitle(APP.title)
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}
+
+/**
+ * Execute esta função uma vez no editor do Apps Script.
+ * Cria (ou reaproveita) a planilha operacional e a pasta de exportação no Drive,
+ * grava os IDs nas Propriedades do script e inicializa as abas.
+ */
+function setup() {
+  const props = PropertiesService.getScriptProperties();
+
+  let ss;
+  const existingId = props.getProperty(APP.spreadsheetProperty);
+  if (existingId) {
+    ss = SpreadsheetApp.openById(existingId);
+  } else {
+    ss = SpreadsheetApp.create('Levantamento - Automação Embrapa Caprinos e Ovinos');
+    props.setProperty(APP.spreadsheetProperty, ss.getId());
+  }
+
+  let folder;
+  const existingFolderId = props.getProperty(APP.folderProperty);
+  if (existingFolderId) {
+    folder = DriveApp.getFolderById(existingFolderId);
+  } else {
+    folder = DriveApp.createFolder('Exportações - Levantamento Automação Embrapa');
+    props.setProperty(APP.folderProperty, folder.getId());
+  }
+
+  initializeSheets_(ss);
+  const info = {
+    spreadsheetId: ss.getId(),
+    spreadsheetUrl: ss.getUrl(),
+    folderId: folder.getId(),
+    folderUrl: folder.getUrl()
+  };
+  Logger.log(JSON.stringify(info, null, 2));
+  return info;
+}
+
+function getAppInfo() {
+  const props = PropertiesService.getScriptProperties();
+  const spreadsheetId = props.getProperty(APP.spreadsheetProperty);
+  const folderId = props.getProperty(APP.folderProperty);
+  return {
+    configured: !!spreadsheetId && !!folderId,
+    spreadsheetUrl: spreadsheetId ? SpreadsheetApp.openById(spreadsheetId).getUrl() : '',
+    folderUrl: folderId ? DriveApp.getFolderById(folderId).getUrl() : ''
+  };
+}
+
+/**
+ * Recebe uma resposta do formulário.
+ * Cada chamada gera um novo registro e um novo ID, mesmo que várias respostas
+ * sejam enviadas pela mesma conta Google ou pelo mesmo dispositivo.
+ */
+function submitResponse(payload) {
+  const record = buildRecord_(payload); // valida e normaliza antes de travar
+
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) {
+    throw new Error('O servidor está ocupado no momento. Aguarde alguns segundos e envie novamente.');
+  }
+
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const spreadsheetId = props.getProperty(APP.spreadsheetProperty);
+    const folderId = props.getProperty(APP.folderProperty);
+    if (!spreadsheetId || !folderId) {
+      throw new Error('A aplicação ainda não foi configurada. Execute a função setup() uma vez no Apps Script.');
+    }
+
+    const ss = SpreadsheetApp.openById(spreadsheetId);
+    initializeSheets_(ss);
+
+    record.response_id = nextResponseId_(ss);
+    record.submitted_at = Utilities.formatDate(new Date(), APP.timezone, "yyyy-MM-dd'T'HH:mm:ssXXX");
+
+    writeResponse_(ss, record);
+    SpreadsheetApp.flush();
+
+    // A resposta já está salva; uma falha na exportação não deve fazer o
+    // entrevistador reenviar (o que duplicaria a resposta).
+    try {
+      exportAll_(ss, folderId, record);
+    } catch (err) {
+      console.error('Falha na exportação para o Drive: ' + err);
+    }
+
+    return { ok: true, responseId: record.response_id, message: 'Resposta registrada com sucesso.' };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Validação e normalização                                            */
+/* ------------------------------------------------------------------ */
+
+function buildRecord_(p) {
+  if (!p || typeof p !== 'object') fail_('Os dados do formulário não foram recebidos.');
+
+  const perfil = str_(p.perfil);
+  if (CATALOG.perfis.indexOf(perfil) === -1) fail_('Informe o perfil (Assistente/Técnico ou Analista/Pesquisador).');
+  const isTecnico = perfil === PERFIL_TECNICO;
+
+  // Área / setor
+  const allowedAreas = CATALOG.areas[perfil];
+  const areas = uniq_(arr_(p.areas).map(str_).filter(function (a) { return allowedAreas.indexOf(a) !== -1; }));
+  if (!areas.length) fail_('Selecione pelo menos uma área/setor.');
+  const hasOther = areas.some(isOtherArea_);
+  const areaOutro = hasOther ? clip_(p.areaOutro, 200) : '';
+  if (hasOther && !areaOutro) fail_('Especifique a outra área/setor.');
+
+  // Treinamento e habilidades (somente Assistente/Técnico)
+  let treinamento = '';
+  let habilidade = '';
+  if (isTecnico) {
+    treinamento = str_(p.treinamento);
+    if (CATALOG.treinamentos.indexOf(treinamento) === -1) fail_('Informe quando ocorreu o último treinamento.');
+    habilidade = int_(p.habilidadeTech, 1, 5);
+    if (habilidade === null) fail_('Avalie as suas habilidades técnicas com celular e computador (1 a 5 estrelas).');
+  }
+
+  // Tarefas: três campos por pergunta
+  const tempo = three_(p.tarefasTempo);
+  const esforco = three_(p.tarefasEsforco);
+  if (!tempo.some(Boolean)) fail_('Informe pelo menos uma tarefa que mais consome o seu tempo.');
+  if (!esforco.some(Boolean)) fail_('Informe pelo menos uma tarefa que demanda maior frequência ou esforço físico.');
+
+  const merged = mergeTasks_(tempo, esforco);
+  const detailsByKey = {};
+  arr_(p.detalhesTarefas).forEach(function (d) {
+    if (d && typeof d === 'object') detailsByKey[taskKey_(d.chave || d.tarefa)] = d;
+  });
+
+  const tasks = merged.map(function (t, i) {
+    const d = detailsByKey[t.key];
+    if (!d) fail_('Faltam as avaliações da tarefa "' + t.task + '".');
+    const problemas = clip_(d.problemas);
+    if (!problemas) fail_('Descreva os principais problemas da tarefa "' + t.task + '".');
+    const importancia = int_(d.importancia, 1, 5);
+    if (importancia === null) fail_('Avalie a importância de melhorar a tarefa "' + t.task + '".');
+    const satisfacao = int_(d.satisfacao, 1, 5);
+    if (satisfacao === null) fail_('Avalie a satisfação com a solução atual da tarefa "' + t.task + '".');
+    const modo = str_(d.modo);
+    if (CATALOG.modos.indexOf(modo) === -1) fail_('Informe o modo de execução da tarefa "' + t.task + '".');
+
+    return {
+      task_id: 'T' + String(i + 1).padStart(2, '0'),
+      tarefa: t.task,
+      origem_tempo: t.tempo ? 'sim' : 'não',
+      origem_esforco: t.esforco ? 'sim' : 'não',
+      origem: t.tempo && t.esforco ? 'tempo+esforco' : (t.tempo ? 'tempo' : 'esforco'),
+      problemas: problemas,
+      importancia_1_5: importancia,
+      satisfacao_1_5: satisfacao,
+      modo_execucao: modo,
+      solucao_improvisada: clip_(d.improvisada)
+    };
+  });
+
+  const barreiras = uniq_(arr_(p.barreirasInfra).map(str_).filter(function (b) {
+    return CATALOG.barreiras.indexOf(b) !== -1;
+  }));
+  const barreiraEquipamento = barreiras.indexOf(CATALOG.barreiraEquipamento) !== -1 ? clip_(p.barreiraEquipamento, 300) : '';
+
+  // Tecnologias e dados de campo (somente Analista/Pesquisador)
+  let tecnologias = [];
+  let dadosCampo = '';
+  if (!isTecnico) {
+    const byIndex = {};
+    arr_(p.tecnologias).forEach(function (t) { if (t && typeof t === 'object') byIndex[Number(t.indice)] = t; });
+    tecnologias = CATALOG.tecnologias.map(function (item, i) {
+      const t = byIndex[i];
+      const situacao = t ? int_(t.situacao, 0, 5) : null;
+      if (situacao === null) fail_('Informe a situação da tecnologia "' + item.tecnologia + '".');
+      const motivo = situacao === 2 ? clip_(t.motivo, 500) : '';
+      if (situacao === 2 && !motivo) fail_('Informe o motivo (situação 2) para "' + item.tecnologia + '".');
+      return {
+        tech_id: 'TEC' + String(i + 1).padStart(2, '0'),
+        categoria: item.categoria,
+        tecnologia: item.tecnologia,
+        situacao_0_5: situacao,
+        situacao_descricao: situacaoLabel_(item.categoria, situacao),
+        motivo_situacao_2: motivo
+      };
+    });
+  }
+
+  // Dados de campo (obrigatório para os dois perfis)
+  dadosCampo = clip_(p.dadosCampo);
+  if (!dadosCampo) fail_('Informe como os dados coletados em campo são registrados e guardados.');
+
+  return {
+    response_id: '',
+    submitted_at: '',
+    versao_formulario: APP.formVersion,
+    perfil: perfil,
+    areas: areas.join(' | '),
+    area_outro: areaOutro,
+    treinamento: treinamento,
+    habilidade_tech_1_5: habilidade,
+    tarefa_tempo_1: tempo[0], tarefa_tempo_2: tempo[1], tarefa_tempo_3: tempo[2],
+    tarefa_esforco_1: esforco[0], tarefa_esforco_2: esforco[1], tarefa_esforco_3: esforco[2],
+    n_tarefas_unicas: tasks.length,
+    barreiras_infraestrutura: barreiras.join(' | '),
+    barreira_equipamento: barreiraEquipamento,
+    dados_campo: dadosCampo,
+    ferramenta_ideal: clip_(p.ferramentaIdeal),
+    mudanca_amanha: clip_(p.mudancaAmanha),
+    comentarios: clip_(p.comentarios),
+    tasks: tasks,
+    tecnologias: tecnologias
+  };
+}
+
+/** Junta as tarefas das duas perguntas, eliminando duplicidades e preservando a origem. */
+function mergeTasks_(tempo, esforco) {
+  const map = {};
+  const order = [];
+  function add(list, kind) {
+    list.forEach(function (task) {
+      if (!task) return;
+      const key = taskKey_(task);
+      if (!map[key]) {
+        map[key] = { key: key, task: task, tempo: false, esforco: false };
+        order.push(key);
+      }
+      map[key][kind] = true;
+    });
+  }
+  add(tempo, 'tempo');
+  add(esforco, 'esforco');
+  return order.map(function (k) { return map[k]; });
+}
+
+function taskKey_(s) {
+  return String(s == null ? '' : s)
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLocaleLowerCase('pt-BR')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function three_(v) {
+  const list = arr_(v).slice(0, 3).map(function (x) { return clip_(x, 300).replace(/\s+/g, ' '); });
+  while (list.length < 3) list.push('');
+  return list;
+}
+
+function isOtherArea_(a) { return a === 'Outro' || a === 'Outros'; }
+function fail_(msg) { throw new Error(msg); }
+function arr_(v) { return Array.isArray(v) ? v : []; }
+function str_(v) { return String(v == null ? '' : v).trim(); }
+function clip_(v, max) { return str_(v).slice(0, max || APP.maxText); }
+function uniq_(list) { return list.filter(function (x, i) { return list.indexOf(x) === i; }); }
+function int_(v, min, max) {
+  if (v === '' || v === null || v === undefined) return null;
+  const n = Number(v);
+  return Number.isInteger(n) && n >= min && n <= max ? n : null;
+}
+
+/* ------------------------------------------------------------------ */
+/* Planilha                                                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Cria as abas que faltam. Se uma aba já existir com cabeçalhos de uma versão
+ * anterior do formulário, ela é RENOMEADA (ex.: Respostas_v1) e preservada —
+ * nenhum dado antigo é apagado.
+ */
+function initializeSheets_(ss) {
+  Object.keys(SHEETS).forEach(function (name) {
+    const headers = SHEETS[name];
+    let sh = ss.getSheetByName(name);
+
+    if (sh && sh.getLastRow() > 0) {
+      const width = Math.max(sh.getLastColumn(), headers.length);
+      const current = sh.getRange(1, 1, 1, width).getValues()[0].map(String);
+      const expected = headers.concat(new Array(width - headers.length).fill(''));
+      if (current.join('|') !== expected.join('|')) {
+        if (sh.getLastRow() > 1) {
+          sh.setName(uniqueSheetName_(ss, name + '_v1'));
+          sh = null;
+        } else {
+          sh.clear();
+        }
+      }
+    }
+
+    if (!sh) sh = ss.insertSheet(name);
+    if (sh.getLastRow() === 0) {
+      sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+      sh.setFrozenRows(1);
+    }
+  });
+
+  const config = ss.getSheetByName('Config') || ss.insertSheet('Config');
+  if (config.getLastRow() === 0) {
+    const rows = [
+      ['chave', 'grupo', 'valor'],
+      ['app_title', 'geral', APP.title],
+      ['form_version', 'geral', APP.formVersion],
+      ['anonymous', 'geral', 'true'],
+      ['tasks_per_question', 'geral', '3'],
+      ['infra_multi', 'geral', 'true'],
+      ['tech_status_2_reason_required', 'geral', 'true'],
+      ['export_json', 'geral', 'true'],
+      ['export_csv', 'geral', 'true'],
+      ['timezone', 'geral', APP.timezone]
+    ];
+    config.getRange(1, 1, rows.length, 3).setValues(rows);
+    config.setFrozenRows(1);
+  }
+
+  // Remove a aba padrão vazia criada junto com a planilha.
+  ['Página1', 'Sheet1', 'Planilha1'].forEach(function (n) {
+    const sh = ss.getSheetByName(n);
+    if (sh && sh.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(sh);
+  });
+}
+
+function uniqueSheetName_(ss, base) {
+  let name = base;
+  let i = 2;
+  while (ss.getSheetByName(name)) name = base + '_' + (i++);
+  return name;
+}
+
+/**
+ * Gera IDs sequenciais (RESP-AAAAMMDD-NNNN) a partir de um contador guardado
+ * nas Propriedades do script. O contador nunca volta atrás, mesmo que linhas
+ * sejam apagadas da planilha.
+ */
+function nextResponseId_(ss) {
+  const props = PropertiesService.getScriptProperties();
+  let n = Number(props.getProperty(APP.counterProperty)) || 0;
+  if (!n) {
+    ss.getSheets().forEach(function (sh) {
+      if (sh.getName().indexOf('Respostas') === 0) n += Math.max(0, sh.getLastRow() - 1);
+    });
+  }
+  n += 1;
+  props.setProperty(APP.counterProperty, String(n));
+  const date = Utilities.formatDate(new Date(), APP.timezone, 'yyyyMMdd');
+  return 'RESP-' + date + '-' + String(n).padStart(4, '0');
+}
+
+function writeResponse_(ss, r) {
+  appendObjects_(ss.getSheetByName('Respostas'), SHEETS.Respostas, [r]);
+
+  appendObjects_(ss.getSheetByName('Tarefas'), SHEETS.Tarefas, r.tasks.map(function (t) {
+    return Object.assign({ response_id: r.response_id }, t);
+  }));
+
+  appendObjects_(ss.getSheetByName('Tecnologias'), SHEETS.Tecnologias, r.tecnologias.map(function (t) {
+    return Object.assign({ response_id: r.response_id }, t);
+  }));
+}
+
+function appendObjects_(sheet, headers, objects) {
+  if (!objects.length) return;
+  const rows = objects.map(function (o) {
+    return headers.map(function (h) { return toCell_(o[h]); });
+  });
+  const formats = rows.map(function () {
+    return headers.map(function (h) { return NUMERIC_COLUMNS[h] ? '0' : '@'; });
+  });
+  const range = sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, headers.length);
+  range.setNumberFormats(formats);
+  range.setValues(rows);
+}
+
+/** Evita que textos iniciados por = + - @ sejam interpretados como fórmula. */
+function toCell_(v) {
+  if (v === null || v === undefined) return '';
+  if (typeof v === 'string' && /^[=+\-@]/.test(v)) return "'" + v;
+  return v;
+}
+
+/* ------------------------------------------------------------------ */
+/* Exportações para o Drive                                            */
+/* ------------------------------------------------------------------ */
+
+function exportAll_(ss, folderId, record) {
+  const folder = DriveApp.getFolderById(folderId);
+  const timestamp = Utilities.formatDate(new Date(), APP.timezone, 'yyyyMMdd_HHmmss');
+
+  const data = {
+    generated_at: new Date().toISOString(),
+    form_version: APP.formVersion,
+    responses: sheetObjects_(ss.getSheetByName('Respostas')),
+    tasks: sheetObjects_(ss.getSheetByName('Tarefas')),
+    technologies: sheetObjects_(ss.getSheetByName('Tecnologias'))
+  };
+
+  createOrReplace_(folder, 'levantamento_automacao_latest.json', JSON.stringify(data, null, 2), 'application/json');
+  createOrReplace_(folder, 'respondentes_latest.csv', toCsv_(data.responses), MimeType.CSV);
+  createOrReplace_(folder, 'tarefas_latest.csv', toCsv_(data.tasks), MimeType.CSV);
+  createOrReplace_(folder, 'tecnologias_latest.csv', toCsv_(data.technologies), MimeType.CSV);
+
+  // Cópia histórica (JSON hierárquico) de cada resposta recebida.
+  if (record) folder.createFile(record.response_id + '_' + timestamp + '.json', JSON.stringify(record, null, 2), 'application/json');
+}
+
+function createOrReplace_(folder, name, content, mime) {
+  const old = folder.getFilesByName(name);
+  while (old.hasNext()) old.next().setTrashed(true);
+  folder.createFile(name, content, mime);
+}
+
+function sheetObjects_(sheet) {
+  if (!sheet) return [];
+  const values = sheet.getDataRange().getValues();
+  if (values.length <= 1) return [];
+  const headers = values[0];
+  return values.slice(1).map(function (row) {
+    const obj = {};
+    headers.forEach(function (h, i) { obj[h] = row[i]; });
+    return obj;
+  });
+}
+
+/** CSV em UTF-8 com BOM, para que o Excel exiba a acentuação corretamente. */
+function toCsv_(objects) {
+  if (!objects.length) return '';
+  const headers = Object.keys(objects[0]);
+  const rows = [headers];
+  objects.forEach(function (o) { rows.push(headers.map(function (h) { return o[h]; })); });
+  return '﻿' + rows.map(function (row) { return row.map(csvEscape_).join(','); }).join('\r\n');
+}
+
+function csvEscape_(v) {
+  const s = v instanceof Date ? v.toISOString() : String(v == null ? '' : v);
+  return '"' + s.replace(/"/g, '""') + '"';
+}
+
+/* ------------------------------------------------------------------ */
+/* Recebimento das respostas da versão offline                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Recebe as respostas coletadas sem internet (arquivo formulario_offline.html)
+ * quando o aparelho volta a ficar online. Respostas já recebidas antes
+ * (mesmo ID) são ignoradas, então reenviar não duplica nada.
+ */
+function doPost(e) {
+  let out;
+  try {
+    const body = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+    const items = Array.isArray(body.responses) ? body.responses : [];
+    out = { ok: true, results: importOfflineResponses_(items) };
+  } catch (err) {
+    out = { ok: false, error: String((err && err.message) || err) };
+  }
+  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function importOfflineResponses_(items) {
+  if (items.length > 50) throw new Error('Envie no máximo 50 respostas por vez.');
+
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) throw new Error('O servidor está ocupado. Tente novamente em alguns segundos.');
+
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const spreadsheetId = props.getProperty(APP.spreadsheetProperty);
+    const folderId = props.getProperty(APP.folderProperty);
+    if (!spreadsheetId || !folderId) {
+      throw new Error('A aplicação ainda não foi configurada. Execute a função setup() uma vez no Apps Script.');
+    }
+
+    const ss = SpreadsheetApp.openById(spreadsheetId);
+    initializeSheets_(ss);
+    const folder = DriveApp.getFolderById(folderId);
+    const timestamp = Utilities.formatDate(new Date(), APP.timezone, 'yyyyMMdd_HHmmss');
+
+    const sheet = ss.getSheetByName('Respostas');
+    const existing = {};
+    if (sheet.getLastRow() > 1) {
+      sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues()
+        .forEach(function (r) { existing[String(r[0])] = true; });
+    }
+
+    const results = [];
+    let added = 0;
+    items.forEach(function (item) {
+      const id = str_(item && item.id);
+      if (!/^RESP-\d{8}-[A-Z0-9]{4}-\d{4}$/.test(id)) {
+        results.push({ id: id, status: 'erro', message: 'Identificador inválido.' });
+        return;
+      }
+      if (existing[id]) {
+        results.push({ id: id, status: 'duplicado' });
+        return;
+      }
+      try {
+        const record = buildRecord_(item.payload);
+        record.response_id = id;
+        record.submitted_at = str_(item.submittedAt) ||
+          Utilities.formatDate(new Date(), APP.timezone, "yyyy-MM-dd'T'HH:mm:ssXXX");
+        writeResponse_(ss, record);
+        existing[id] = true;
+        added++;
+        folder.createFile(id + '_' + timestamp + '.json', JSON.stringify(record, null, 2), 'application/json');
+        results.push({ id: id, status: 'ok' });
+      } catch (err) {
+        results.push({ id: id, status: 'erro', message: String((err && err.message) || err) });
+      }
+    });
+
+    if (added) {
+      SpreadsheetApp.flush();
+      try {
+        exportAll_(ss, folderId, null);
+      } catch (err) {
+        console.error('Falha na exportação para o Drive: ' + err);
+      }
+    }
+    return results;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+</script>
+<script>
+/* =====================================================================
+   VERSÃO OFFLINE
+   Salva as respostas no próprio aparelho, gera os mesmos arquivos de
+   saída do Apps Script e, com internet, envia as pendentes à planilha.
+   ===================================================================== */
+
+/* Cole aqui a URL do Aplicativo da Web (terminada em /exec) para já deixar
+   o envio configurado em todos os aparelhos. Também pode ser informada
+   depois, em "Gerenciar respostas → Configurações". */
+var OFFLINE_WEB_APP_URL = '';
+
+window.CATALOG = CATALOG;
+
+(function () {
+  'use strict';
+
+  var KEY = 'levantamento_embrapa_offline_v1';
+  var OFFLINE_ID = /^RESP-\d{8}-[A-Z0-9]{4}-\d{4}$/;
+  var db = null;
+  var storageOk = true;
+
+  /* ---------------- armazenamento ---------------- */
+  function newDevice() {
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var out = '';
+    var rnd = new Uint8Array(4);
+    (window.crypto || window.msCrypto).getRandomValues(rnd);
+    for (var i = 0; i < 4; i++) out += chars[rnd[i] % chars.length];
+    return out;
+  }
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      db = raw ? JSON.parse(raw) : null;
+      localStorage.setItem(KEY + '_teste', '1');
+      localStorage.removeItem(KEY + '_teste');
+    } catch (e) {
+      storageOk = false;
+    }
+    if (!db || !Array.isArray(db.records)) db = { device: newDevice(), counter: 0, records: [], synced: {}, url: '', backup: true, lastExport: null };
+    if (!db.device) db.device = newDevice();
+    if (!db.synced) db.synced = {};
+    persist();
+  }
+  function persist() {
+    if (!storageOk) return false;
+    try { localStorage.setItem(KEY, JSON.stringify(db)); return true; }
+    catch (e) { return false; }
+  }
+
+  /* ---------------- datas ---------------- */
+  function pad(n, w) { return String(n).padStart(w || 2, '0'); }
+  function ymd(d) { return d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()); }
+  function isoLocal(d) {
+    var off = -d.getTimezoneOffset();
+    var sign = off >= 0 ? '+' : '-';
+    off = Math.abs(off);
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' +
+      pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) +
+      sign + pad(Math.floor(off / 60)) + ':' + pad(off % 60);
+  }
+  function stampFrom(iso) {
+    var m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/);
+    if (m) return m[1] + m[2] + m[3] + '_' + m[4] + m[5] + m[6];
+    var d = new Date();
+    return ymd(d) + '_' + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
+  }
+  function human(iso) {
+    var m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    return m ? m[3] + '/' + m[2] + '/' + m[1] + ' ' + m[4] + ':' + m[5] : String(iso || '');
+  }
+
+  /* ---------------- salvar uma resposta ---------------- */
+  // Usa a mesma função buildRecord_ do Code.gs: mesma validação, mesmas colunas.
+  function saveResponse(payload) {
+    var record = buildRecord_(payload);
+    var now = new Date();
+    db.counter += 1;
+    record.response_id = 'RESP-' + ymd(now) + '-' + db.device + '-' + pad(db.counter, 4);
+    record.submitted_at = isoLocal(now);
+    db.records.push(record);
+
+    if (storageOk && !persist()) {
+      db.records.pop();
+      db.counter -= 1;
+      throw new Error('O armazenamento do aparelho está cheio. Abra "Gerenciar respostas", exporte os arquivos e tente novamente.');
+    }
+    if (db.backup || !storageOk) {
+      download(record.response_id + '_' + stampFrom(record.submitted_at) + '.json', JSON.stringify(record, null, 2), 'application/json');
+    }
+    refresh();
+    return { ok: true, responseId: record.response_id };
+  }
+
+  // Substitui google.script.run: o app.html continua exatamente o mesmo.
+  function makeRunner() {
+    var onOk = function () {}, onFail = function () {};
+    var runner = {
+      withSuccessHandler: function (fn) { onOk = fn; return runner; },
+      withFailureHandler: function (fn) { onFail = fn; return runner; },
+      submitResponse: function (payload) {
+        setTimeout(function () {
+          try {
+            var res = saveResponse(payload);
+            var p = document.querySelector('#successScreen p');
+            if (p) p.textContent = 'A entrevista foi salva neste aparelho.';
+            var hint = document.querySelector('#successScreen .hint');
+            if (hint) hint.textContent = 'Para a próxima entrevista, recarregue esta página. Lembre-se de exportar ou enviar as respostas à planilha em "Gerenciar respostas".';
+            onOk(res);
+          } catch (err) { onFail(err); }
+        }, 60);
+      }
+    };
+    return runner;
+  }
+  window.google = { script: { run: makeRunner() } };
+
+  /* ---------------- arquivos de saída (mesmo formato do Drive) ---------------- */
+  function pick(headers, src) {
+    var o = {};
+    headers.forEach(function (h) { var v = src[h]; o[h] = v === null || v === undefined ? '' : v; });
+    return o;
+  }
+  function datasets(records) {
+    var responses = [], tasks = [], technologies = [];
+    records.forEach(function (r) {
+      responses.push(pick(SHEETS.Respostas, r));
+      (r.tasks || []).forEach(function (t) { tasks.push(pick(SHEETS.Tarefas, Object.assign({ response_id: r.response_id }, t))); });
+      (r.tecnologias || []).forEach(function (t) { technologies.push(pick(SHEETS.Tecnologias, Object.assign({ response_id: r.response_id }, t))); });
+    });
+    return { responses: responses, tasks: tasks, technologies: technologies };
+  }
+  function outputFiles(records) {
+    var d = datasets(records);
+    var latest = {
+      generated_at: new Date().toISOString(),
+      form_version: APP.formVersion,
+      responses: d.responses,
+      tasks: d.tasks,
+      technologies: d.technologies
+    };
+    var files = [
+      { name: 'levantamento_automacao_latest.json', data: JSON.stringify(latest, null, 2) },
+      { name: 'respondentes_latest.csv', data: toCsv_(d.responses) },
+      { name: 'tarefas_latest.csv', data: toCsv_(d.tasks) },
+      { name: 'tecnologias_latest.csv', data: toCsv_(d.technologies) }
+    ];
+    records.forEach(function (r) {
+      files.push({ name: 'respostas/' + r.response_id + '_' + stampFrom(r.submitted_at) + '.json', data: JSON.stringify(r, null, 2) });
+    });
+    return files;
+  }
+
+  /* ---------------- .zip (sem compressão, sem bibliotecas externas) ---------------- */
+  var CRC_TABLE = (function () {
+    var t = new Uint32Array(256);
+    for (var n = 0; n < 256; n++) {
+      var c = n;
+      for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+      t[n] = c >>> 0;
+    }
+    return t;
+  })();
+  function crc32(bytes) {
+    var c = 0xFFFFFFFF;
+    for (var i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+  function makeZip(files) {
+    var enc = new TextEncoder();
+    var d = new Date();
+    var time = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
+    var date = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+    var parts = [], central = [], offset = 0, centralSize = 0;
+    files.forEach(function (f) {
+      var name = enc.encode(f.name), data = enc.encode(f.data), crc = crc32(data);
+      var h = new DataView(new ArrayBuffer(30));
+      h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true);
+      h.setUint16(8, 0, true); h.setUint16(10, time, true); h.setUint16(12, date, true);
+      h.setUint32(14, crc, true); h.setUint32(18, data.length, true); h.setUint32(22, data.length, true);
+      h.setUint16(26, name.length, true); h.setUint16(28, 0, true);
+      parts.push(new Uint8Array(h.buffer), name, data);
+
+      var c = new DataView(new ArrayBuffer(46));
+      c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true);
+      c.setUint16(8, 0x0800, true); c.setUint16(10, 0, true); c.setUint16(12, time, true); c.setUint16(14, date, true);
+      c.setUint32(16, crc, true); c.setUint32(20, data.length, true); c.setUint32(24, data.length, true);
+      c.setUint16(28, name.length, true); c.setUint32(42, offset, true);
+      central.push(new Uint8Array(c.buffer), name);
+      centralSize += 46 + name.length;
+      offset += 30 + name.length + data.length;
+    });
+    var e = new DataView(new ArrayBuffer(22));
+    e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true);
+    e.setUint32(12, centralSize, true); e.setUint32(16, offset, true);
+    return new Blob(parts.concat(central, [new Uint8Array(e.buffer)]), { type: 'application/zip' });
+  }
+
+  function download(name, content, type) {
+    var blob = content instanceof Blob ? content : new Blob([content], { type: type || 'application/octet-stream' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name; a.style.display = 'none';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+  }
+
+  function exportZip() {
+    if (!db.records.length) return msg('Ainda não há respostas salvas neste aparelho.', 'info');
+    var d = new Date();
+    download('levantamento_offline_' + db.device + '_' + ymd(d) + '_' + pad(d.getHours()) + pad(d.getMinutes()) + '.zip', makeZip(outputFiles(db.records)));
+    db.lastExport = { at: isoLocal(d), count: db.records.length };
+    persist();
+    msg('Arquivo .zip gerado com ' + db.records.length + ' resposta(s). Verifique a pasta de downloads do aparelho.', 'ok');
+    refresh();
+  }
+
+  /* ---------------- envio à planilha ---------------- */
+  function splitList(s) { return String(s || '').split(' | ').map(function (x) { return x.trim(); }).filter(Boolean); }
+
+  // Reconstrói os dados do formulário a partir da resposta salva, para que o
+  // servidor valide tudo de novo com a mesma função buildRecord_.
+  function recordToPayload(r) {
+    var index = {};
+    CATALOG.tecnologias.forEach(function (t, i) { index[t.tecnologia] = i; });
+    return {
+      perfil: r.perfil,
+      areas: splitList(r.areas),
+      areaOutro: r.area_outro,
+      treinamento: r.treinamento,
+      habilidadeTech: r.habilidade_tech_1_5,
+      tarefasTempo: [r.tarefa_tempo_1, r.tarefa_tempo_2, r.tarefa_tempo_3],
+      tarefasEsforco: [r.tarefa_esforco_1, r.tarefa_esforco_2, r.tarefa_esforco_3],
+      detalhesTarefas: (r.tasks || []).map(function (t) {
+        return {
+          chave: taskKey_(t.tarefa), tarefa: t.tarefa, problemas: t.problemas,
+          importancia: t.importancia_1_5, satisfacao: t.satisfacao_1_5,
+          modo: t.modo_execucao, improvisada: t.solucao_improvisada
+        };
+      }),
+      barreirasInfra: splitList(r.barreiras_infraestrutura),
+      barreiraEquipamento: r.barreira_equipamento,
+      tecnologias: (r.tecnologias || []).map(function (t) {
+        var i = index[t.tecnologia];
+        if (i === undefined) i = Number(String(t.tech_id).replace(/\D/g, '')) - 1;
+        return { indice: i, situacao: t.situacao_0_5, motivo: t.motivo_situacao_2 };
+      }),
+      dadosCampo: r.dados_campo,
+      ferramentaIdeal: r.ferramenta_ideal,
+      mudancaAmanha: r.mudanca_amanha,
+      comentarios: r.comentarios
+    };
+  }
+
+  function webAppUrl() { return String(db.url || OFFLINE_WEB_APP_URL || '').trim(); }
+
+  function sync() {
+    var url = webAppUrl();
+    if (!/^https:\/\/script\.google\.com\/.+\/exec\/?$/.test(url)) {
+      document.querySelector('.settings').open = true;
+      return msg('Informe a URL do Aplicativo da Web em "Configurações" (ela termina em /exec).', 'bad');
+    }
+    if (!navigator.onLine) return msg('Sem conexão com a internet no momento. Tente novamente quando houver sinal.', 'bad');
+    var pending = db.records.filter(function (r) { return !db.synced[r.response_id]; });
+    if (!pending.length) return msg('Todas as respostas deste aparelho já estão na planilha.', 'ok');
+
+    var btn = document.getElementById('syncBtn');
+    btn.disabled = true;
+    msg('Enviando ' + pending.length + ' resposta(s)…', 'info');
+    var sent = 0, failed = [];
+    var chunks = [];
+    for (var i = 0; i < pending.length; i += 10) chunks.push(pending.slice(i, i + 10));
+
+    (function nextChunk(k) {
+      if (k >= chunks.length) {
+        btn.disabled = false;
+        persist();
+        refresh();
+        if (!failed.length) return msg(sent + ' resposta(s) enviada(s) para a planilha com sucesso.', 'ok');
+        return msg(sent + ' enviada(s). ' + failed.length + ' com problema: ' + failed.join(' · '), 'bad');
+      }
+      var body = JSON.stringify({
+        responses: chunks[k].map(function (r) {
+          return { id: r.response_id, submittedAt: r.submitted_at, payload: recordToPayload(r) };
+        })
+      });
+      fetch(url, { method: 'POST', body: body, redirect: 'follow' })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (!data || !data.ok) throw new Error((data && data.error) || 'resposta inválida do servidor');
+          data.results.forEach(function (x) {
+            if (x.status === 'ok' || x.status === 'duplicado') { db.synced[x.id] = isoLocal(new Date()); sent++; }
+            else failed.push(x.id + ' (' + (x.message || x.status) + ')');
+          });
+          persist();
+          nextChunk(k + 1);
+        })
+        .catch(function (err) {
+          btn.disabled = false;
+          persist();
+          refresh();
+          msg('Não foi possível enviar' + (sent ? ' todas (' + sent + ' enviada(s))' : '') + ': ' + (err.message || err) +
+            '. Confira a internet e a URL, e se o Code.gs atualizado foi publicado como nova versão.', 'bad');
+        });
+    })(0);
+  }
+
+  /* ---------------- importar ---------------- */
+  function recordsFromJson(obj) {
+    if (obj && obj.response_id && Array.isArray(obj.tasks)) return [obj];
+    if (obj && Array.isArray(obj.responses)) {
+      var tasks = obj.tasks || [], techs = obj.technologies || [];
+      return obj.responses.map(function (row) {
+        var r = Object.assign({}, row);
+        r.tasks = tasks.filter(function (t) { return t.response_id === row.response_id; })
+          .map(function (t) { var c = Object.assign({}, t); delete c.response_id; return c; });
+        r.tecnologias = techs.filter(function (t) { return t.response_id === row.response_id; })
+          .map(function (t) { var c = Object.assign({}, t); delete c.response_id; return c; });
+        return r;
+      });
+    }
+    return [];
+  }
+
+  function importFiles(fileList) {
+    var files = Array.prototype.slice.call(fileList || []);
+    if (!files.length) return;
+    var existing = {};
+    db.records.forEach(function (r) { existing[r.response_id] = true; });
+    var added = 0, dup = 0, invalid = 0;
+    Promise.all(files.map(function (f) { return f.text().then(function (t) { return { name: f.name, text: t }; }); }))
+      .then(function (list) {
+        list.forEach(function (f) {
+          var obj;
+          try { obj = JSON.parse(f.text.replace(/^﻿/, '')); } catch (e) { invalid++; return; }
+          var recs = recordsFromJson(obj);
+          if (!recs.length) invalid++;
+          recs.forEach(function (r) {
+            var id = String(r.response_id || '');
+            if (!id) { invalid++; return; }
+            if (existing[id]) { dup++; return; }
+            try { buildRecord_(recordToPayload(r)); } catch (e) { invalid++; return; }
+            db.records.push(r);
+            existing[id] = true;
+            // Respostas do formulário on-line (sem código de aparelho) já estão na planilha.
+            if (!OFFLINE_ID.test(id)) db.synced[id] = 'origem on-line';
+            added++;
+          });
+        });
+        if (!persist() && storageOk) msg('Armazenamento cheio: nem todas as respostas puderam ser guardadas.', 'bad');
+        else msg(added + ' resposta(s) importada(s)' + (dup ? ', ' + dup + ' já existiam' : '') + (invalid ? ', ' + invalid + ' arquivo(s)/registro(s) inválido(s)' : '') + '.', added ? 'ok' : 'info');
+        refresh();
+        document.getElementById('importInput').value = '';
+      });
+  }
+
+  function clearAll() {
+    var pending = db.records.filter(function (r) { return !db.synced[r.response_id]; }).length;
+    var exported = db.lastExport && db.lastExport.count >= db.records.length;
+    var warn = 'Apagar as ' + db.records.length + ' resposta(s) salvas neste aparelho?';
+    if (pending && !exported) warn += '\n\nATENÇÃO: ' + pending + ' resposta(s) ainda não foram enviadas à planilha nem exportadas. Elas serão perdidas.';
+    if (!window.confirm(warn)) return;
+    db.records = [];
+    db.synced = {};
+    db.lastExport = null;
+    persist();
+    refresh();
+    msg('As respostas foram apagadas deste aparelho.', 'info');
+  }
+
+  /* ---------------- painel ---------------- */
+  function msg(text, kind) {
+    var box = document.getElementById('panelMsg');
+    box.textContent = text;
+    box.className = 'panel-msg show ' + (kind || 'info');
+  }
+  function escHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>'"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c];
+    });
+  }
+
+  function refresh() {
+    var total = db.records.length;
+    var pending = db.records.filter(function (r) { return !db.synced[r.response_id]; }).length;
+    var online = navigator.onLine;
+    var net = document.getElementById('netStatus');
+    net.textContent = online ? 'online' : 'sem internet';
+    net.classList.toggle('on', online);
+    document.getElementById('offlineSummary').textContent = total
+      ? total + ' resposta(s) salva(s) neste aparelho · ' + pending + ' não enviada(s) à planilha'
+      : 'Nenhuma resposta salva neste aparelho ainda';
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statPending').textContent = pending;
+    document.getElementById('statDevice').textContent = db.device;
+    document.getElementById('storageWarning').hidden = storageOk;
+
+    var list = document.getElementById('respList');
+    if (!total) { list.innerHTML = ''; return; }
+    var rows = db.records.slice().reverse().slice(0, 100).map(function (r) {
+      var sent = !!db.synced[r.response_id];
+      return '<tr><td>' + escHtml(r.response_id) + '</td><td class="hide-sm">' + escHtml(human(r.submitted_at)) + '</td><td class="hide-sm">' +
+        escHtml(r.perfil) + '</td><td><span class="badge ' + (sent ? 'sent' : 'pending') + '">' + (sent ? 'Na planilha' : 'Pendente') + '</span></td></tr>';
+    }).join('');
+    list.innerHTML = '<h3>Últimas respostas</h3><table class="resp-table"><thead><tr><th>ID</th><th class="hide-sm">Data</th><th class="hide-sm">Perfil</th><th>Planilha</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  }
+
+  function openPanel() {
+    document.getElementById('webAppUrl').value = webAppUrl();
+    document.getElementById('backupToggle').checked = !!db.backup;
+    document.getElementById('panelMsg').className = 'panel-msg';
+    refresh();
+    document.getElementById('panelOverlay').hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+  function closePanel() {
+    document.getElementById('panelOverlay').hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  function init() {
+    load();
+    document.getElementById('openPanelBtn').addEventListener('click', openPanel);
+    document.getElementById('closePanelBtn').addEventListener('click', closePanel);
+    document.getElementById('panelOverlay').addEventListener('click', function (e) { if (e.target.id === 'panelOverlay') closePanel(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closePanel(); });
+    document.getElementById('exportBtn').addEventListener('click', exportZip);
+    document.getElementById('syncBtn').addEventListener('click', sync);
+    document.getElementById('clearBtn').addEventListener('click', clearAll);
+    document.getElementById('importInput').addEventListener('change', function (e) { importFiles(e.target.files); });
+    document.getElementById('webAppUrl').addEventListener('change', function (e) { db.url = e.target.value.trim(); persist(); });
+    document.getElementById('backupToggle').addEventListener('change', function (e) { db.backup = e.target.checked; persist(); });
+    window.addEventListener('online', refresh);
+    window.addEventListener('offline', refresh);
+    refresh();
+
+    // Quando o arquivo é publicado em um site (https), passa a funcionar como aplicativo instalável offline.
+    if (/^https?:$/.test(location.protocol) && 'serviceWorker' in navigator) {
+      var link = document.createElement('link');
+      link.rel = 'manifest'; link.href = 'manifest.webmanifest';
+      document.head.appendChild(link);
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+      if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
+    }
+  }
+
+  // Exposto apenas para testes.
+  window.__offline = { recordToPayload: recordToPayload, outputFiles: outputFiles, db: function () { return db; } };
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+<script>
+(function () {
+  'use strict';
+
+  var C = window.CATALOG;
+  var TECNICO = 'Assistente/Técnico';
+  var ANALISTA = 'Analista/Pesquisador';
+  var SAT_LABELS = ['', 'Muito insatisfeito', 'Insatisfeito', 'Neutro', 'Satisfeito', 'Muito satisfeito'];
+  var SAT_COLORS = ['', '#d64545', '#e5793f', '#e8bd4f', '#8cbf5a', '#3fa45f'];
+  var IMP_LABELS = ['', 'Pouco importante', '', '', '', 'Muito importante'];
+
+  var state;
+  function freshState() {
+    return { profile: '', stepIdx: 0, skill: 0, areasFor: '', tasks: [], taskState: {}, sending: false };
+  }
+
+  /* ---------------- utilitários ---------------- */
+  function $(s, root) { return (root || document).querySelector(s); }
+  function $$(s, root) { return Array.prototype.slice.call((root || document).querySelectorAll(s)); }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>'"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c];
+    });
+  }
+  function clean(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim(); }
+  function norm(s) {
+    return String(s == null ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .toLocaleLowerCase('pt-BR').replace(/\s+/g, ' ').trim();
+  }
+  function isOther(v) { return v === 'Outro' || v === 'Outros'; }
+  // Posição horizontal do valor i (1..5) alinhada ao centro do "polegar" do controle deslizante.
+  function pos(i) { return 'calc(var(--thumb) / 2 + (100% - var(--thumb)) * ' + ((i - 1) / 4) + ')'; }
+
+  function steps() {
+    return state.profile === ANALISTA
+      ? ['perfil', 'identificacao', 'tarefas', 'diagnostico', 'tecnologias', 'final']
+      : ['perfil', 'identificacao', 'tarefas', 'diagnostico', 'final'];
+  }
+
+  /* ---------------- renderizações estáticas ---------------- */
+  function renderTraining() {
+    $('#training').innerHTML = '<option value="">Selecione…</option>' +
+      C.treinamentos.map(function (t) { return '<option value="' + esc(t) + '">' + esc(t) + '</option>'; }).join('');
+  }
+
+  function renderStars() {
+    $('#skillStars').innerHTML = [1, 2, 3, 4, 5].map(function (i) {
+      return '<button type="button" class="star" data-v="' + i + '" role="radio" aria-checked="false" aria-label="' + i + ' de 5 estrelas">★</button>';
+    }).join('');
+  }
+
+  function paintStars(v) {
+    $$('#skillStars .star').forEach(function (b) {
+      var n = Number(b.dataset.v);
+      b.classList.toggle('filled', n <= v);
+      b.setAttribute('aria-checked', n === state.skill ? 'true' : 'false');
+      b.tabIndex = (state.skill ? n === state.skill : n === 1) ? 0 : -1;
+    });
+  }
+
+  function setSkill(v) {
+    state.skill = v;
+    paintStars(v);
+    var out = $('#skillValue');
+    out.textContent = v ? v + ' de 5 estrelas' : 'Toque em uma estrela para avaliar';
+    out.classList.toggle('muted', !v);
+  }
+
+  function renderInfra() {
+    $('#infraList').innerHTML = C.barreiras.map(function (b) {
+      var row = '<label class="check-row"><input type="checkbox" name="infra" value="' + esc(b) + '"><span>' + esc(b) + '</span></label>';
+      if (b === C.barreiraEquipamento) {
+        row += '<div class="infra-extra" id="infraEquipBox" hidden><input type="text" id="infraEquip" maxlength="300" placeholder="Qual equipamento?"></div>';
+      }
+      return row;
+    }).join('');
+    // Mostra o campo "Qual equipamento?" somente quando "Ausência de equipamento" está marcada.
+    $('#infraList').addEventListener('change', function (e) {
+      if (e.target.name === 'infra' && e.target.value === C.barreiraEquipamento) {
+        $('#infraEquipBox').hidden = !e.target.checked;
+        if (e.target.checked) $('#infraEquip').focus();
+      }
+    });
+  }
+
+  function renderTech() {
+    var html = '';
+    var current = '';
+    C.tecnologias.forEach(function (t, i) {
+      if (t.categoria !== current) {
+        if (current) html += '</div>';
+        current = t.categoria;
+        html += '<div class="tech-group"><h3>' + esc(current) + '</h3>';
+      }
+      html += '<div class="tech-row" data-i="' + i + '"><div class="tech-name">' + (i + 1) + '. ' + esc(t.tecnologia) + '</div>' +
+        '<div class="tech-options" role="radiogroup" aria-label="' + esc(t.tecnologia) + '">' +
+        C.situacoes.map(function (label, v) {
+          var especial = C.situacoesPorCategoria[t.categoria];
+          if (especial && especial[v]) label = especial[v];
+          return '<label class="tech-opt"><input type="radio" name="tech_' + i + '" value="' + v + '"><strong>' + v + '</strong>' + esc(label) + '</label>';
+        }).join('') +
+        '</div><div class="tech-reason" hidden><input type="text" class="tech-reason-input" maxlength="500" placeholder="Por que nunca utilizou? (obrigatório para o código 2)"></div></div>';
+    });
+    if (current) html += '</div>';
+    $('#techTable').innerHTML = html;
+  }
+
+  /* ---------------- identificação ---------------- */
+  function renderAreas() {
+    if (state.areasFor === state.profile) return;
+    state.areasFor = state.profile;
+    var list = C.areas[state.profile] || [];
+    $('#areaList').innerHTML = list.map(function (a) {
+      return '<label class="check-row" data-search="' + esc(norm(a)) + '"><input type="checkbox" name="area" value="' + esc(a) + '"><span>' + esc(a) + '</span></label>';
+    }).join('');
+    $('#areaSearch').value = '';
+    $('#areaOther').value = '';
+    $('#areaEmpty').hidden = true;
+    toggleOtherArea();
+  }
+
+  function filterAreas() {
+    var q = norm($('#areaSearch').value);
+    var visible = 0;
+    $$('#areaList .check-row').forEach(function (r) {
+      var show = r.dataset.search.indexOf(q) !== -1;
+      r.style.display = show ? 'flex' : 'none';
+      if (show) visible++;
+    });
+    $('#areaEmpty').hidden = visible > 0;
+  }
+
+  function checkedAreas() { return $$('input[name=area]:checked').map(function (x) { return x.value; }); }
+  function toggleOtherArea() { $('#otherArea').hidden = !checkedAreas().some(isOther); }
+
+  function onProfileChange() {
+    var checked = $('input[name=perfil]:checked');
+    state.profile = checked ? checked.value : '';
+    renderAreas();
+    $('#tecnicoBlock').hidden = state.profile !== TECNICO;
+    placeDataUse();
+    updateProgress();
+  }
+
+  // A pergunta sobre dados de campo aparece na etapa de tecnologias (Analista/Pesquisador)
+  // ou ao final da etapa de diagnóstico das tarefas (Assistente/Técnico).
+  function placeDataUse() {
+    var target = state.profile === ANALISTA ? '[data-step=tecnologias] .card' : '[data-step=diagnostico] .card';
+    $(target).appendChild($('[data-q=dataUse]'));
+  }
+
+  /* ---------------- tarefas ---------------- */
+  function readThree(prefix) { return [1, 2, 3].map(function (i) { return clean($('#' + prefix + '_' + i).value); }); }
+
+  function buildTasks() {
+    var map = {}, order = [];
+    function add(list, kind) {
+      list.forEach(function (t) {
+        if (!t) return;
+        var k = norm(t);
+        if (!map[k]) { map[k] = { key: k, task: t, tempo: false, esforco: false }; order.push(k); }
+        map[k][kind] = true;
+      });
+    }
+    add(readThree('tempo'), 'tempo');
+    add(readThree('esforco'), 'esforco');
+    return order.map(function (k) { return map[k]; });
+  }
+
+  function likertHtml(kind, value) {
+    var set = value !== '' && value != null;
+    var v = set ? value : 3;
+    var ticks = '<div class="ticks">' + [1, 2, 3, 4, 5].map(function (i) {
+      return '<span data-t="' + i + '" style="left:' + pos(i) + '">' + i + '</span>';
+    }).join('') + '</div>';
+
+    if (kind === 'imp') {
+      return '<div class="likert likert-imp' + (set ? '' : ' unset') + '">' +
+        '<div class="likert-row">' +
+          '<span class="likert-end end-low" aria-hidden="true" title="Pouco importante">👎</span>' +
+          '<div class="slider-box">' +
+            '<input type="range" class="range f-imp" min="1" max="5" step="1" value="' + v + '" data-set="' + (set ? 1 : 0) + '" aria-label="Importância, de 1 (pouco importante) a 5 (muito importante)">' +
+            ticks +
+            '<div class="likert-legend"><span>1 · Pouco importante</span><span>5 · Muito importante</span></div>' +
+          '</div>' +
+          '<span class="likert-end end-high" aria-hidden="true" title="Muito importante">👍</span>' +
+        '</div>' +
+        '<div class="scale-value" aria-live="polite"></div></div>';
+    }
+    return '<div class="likert likert-sat' + (set ? '' : ' unset') + '">' +
+      '<div class="likert-row">' +
+        '<span class="likert-end" aria-hidden="true"></span>' +
+        '<div class="slider-box">' +
+          '<div class="emojis" aria-hidden="true">' +
+            '<span data-e="1" style="left:' + pos(1) + '" title="Insatisfeito">😞</span>' +
+            '<span data-e="3" style="left:' + pos(3) + '" title="Neutro">😐</span>' +
+            '<span data-e="5" style="left:' + pos(5) + '" title="Satisfeito">😄</span>' +
+          '</div>' +
+          '<input type="range" class="range f-sat" min="1" max="5" step="1" value="' + v + '" data-set="' + (set ? 1 : 0) + '" aria-label="Satisfação, de 1 (insatisfeito) a 5 (satisfeito)">' +
+          ticks +
+          '<div class="likert-legend"><span>1 · Insatisfeito</span><span>5 · Satisfeito</span></div>' +
+        '</div>' +
+        '<span class="likert-end" aria-hidden="true"></span>' +
+      '</div>' +
+      '<div class="scale-value" aria-live="polite"></div></div>';
+  }
+
+  function paintLikert(input) {
+    var box = input.closest('.likert');
+    var set = input.dataset.set === '1';
+    var v = Number(input.value);
+    var isSat = box.classList.contains('likert-sat');
+    box.classList.toggle('unset', !set);
+    input.style.setProperty('--pct', set ? ((v - 1) / 4 * 100) + '%' : '0%');
+    $$('.ticks span', box).forEach(function (s) { s.classList.toggle('on', set && Number(s.dataset.t) === v); });
+
+    var out = $('.scale-value', box);
+    out.classList.toggle('muted', !set);
+    if (!set) { out.textContent = 'Arraste ou toque na barra para avaliar'; }
+
+    if (isSat) {
+      input.style.setProperty('--thumb-color', set ? SAT_COLORS[v] : '#aab7c0');
+      var active = v <= 2 ? 1 : (v === 3 ? 3 : 5);
+      $$('.emojis span', box).forEach(function (e) { e.classList.toggle('active', set && Number(e.dataset.e) === active); });
+      if (set) out.textContent = v + ' de 5 · ' + SAT_LABELS[v];
+    } else {
+      $('.end-low', box).classList.toggle('active', set && v <= 2);
+      $('.end-high', box).classList.toggle('active', set && v >= 4);
+      if (set) out.textContent = v + ' de 5' + (IMP_LABELS[v] ? ' · ' + IMP_LABELS[v] : '');
+    }
+  }
+
+  function saveTaskState() {
+    $$('#taskDetails .task-card').forEach(function (card) {
+      var imp = $('.f-imp', card), sat = $('.f-sat', card), modo = $('input[type=radio]:checked', card);
+      state.taskState[card.dataset.key] = {
+        problemas: $('.f-prob', card).value,
+        importancia: imp.dataset.set === '1' ? Number(imp.value) : '',
+        satisfacao: sat.dataset.set === '1' ? Number(sat.value) : '',
+        modo: modo ? modo.value : '',
+        improvisada: $('.f-impv', card).value
+      };
+    });
+  }
+
+  function renderTaskDetails() {
+    saveTaskState();
+    state.tasks = buildTasks();
+    $('#taskDetails').innerHTML = state.tasks.map(function (t, idx) {
+      var d = state.taskState[t.key] || {};
+      var tag = t.tempo && t.esforco ? 'tempo + esforço' : (t.tempo ? 'tempo' : 'esforço físico');
+      return '<div class="task-card" data-key="' + esc(t.key) + '">' +
+        '<div class="task-name">' + (idx + 1) + '. ' + esc(t.task) + '<span class="tag">' + tag + '</span></div>' +
+        '<div class="question" data-q="prob"><div class="qtitle">Quais são os principais problemas que existem para que se possa concluir a atividade?<span class="required">OBRIGATÓRIO</span></div>' +
+          '<textarea class="f-prob" placeholder="Descreva os principais gargalos, limitações ou dificuldades…">' + esc(d.problemas || '') + '</textarea></div>' +
+        '<div class="question" data-q="imp"><div class="qtitle">Importância de melhorar tecnologicamente a solução atual<span class="required">OBRIGATÓRIO</span></div>' +
+          likertHtml('imp', d.importancia) + '</div>' +
+        '<div class="question" data-q="sat"><div class="qtitle">Satisfação com a solução atual<span class="required">OBRIGATÓRIO</span></div>' +
+          likertHtml('sat', d.satisfacao) + '</div>' +
+        '<div class="question" data-q="modo"><div class="qtitle">Como esta tarefa é executada?<span class="required">OBRIGATÓRIO</span></div>' +
+          '<div class="radio-group">' + C.modos.map(function (m) {
+            return '<label class="radio"><input type="radio" name="modo_' + idx + '" value="' + esc(m) + '"' + (d.modo === m ? ' checked' : '') + '> ' + esc(m) + '</label>';
+          }).join('') + '</div></div>' +
+        '<div class="question"><div class="qtitle">Existe alguma solução que foi improvisada pela equipe para melhorar o fluxo de trabalho?</div>' +
+          '<textarea class="f-impv" placeholder="Descreva a solução improvisada…">' + esc(d.improvisada || '') + '</textarea></div>' +
+      '</div>';
+    }).join('');
+    $$('#taskDetails .range').forEach(paintLikert);
+  }
+
+  function touchSlider(input) {
+    if (input.dataset.set !== '1') input.dataset.set = '1';
+    paintLikert(input);
+  }
+
+  /* ---------------- tecnologias ---------------- */
+  function onTechChange(input) {
+    var row = input.closest('.tech-row');
+    var v = Number(input.value);
+    $$('.tech-opt', row).forEach(function (el) { el.classList.toggle('selected', $('input', el).checked); });
+    var reason = $('.tech-reason', row);
+    reason.hidden = v !== 2;
+    if (v === 2) $('input', reason).focus();
+  }
+
+  /* ---------------- validação ---------------- */
+  function validate(stepId) {
+    var errs = [];
+    function err(el, msg) { errs.push({ el: el, msg: msg }); }
+
+    if (stepId === 'perfil') {
+      if (!state.profile) err($('[data-q=perfil]'), 'Selecione o perfil do respondente.');
+    }
+    if (stepId === 'identificacao') {
+      var areas = checkedAreas();
+      if (!areas.length) err($('[data-q=areas]'), 'Selecione pelo menos uma área/setor.');
+      else if (areas.some(isOther) && !clean($('#areaOther').value)) err($('[data-q=areas]'), 'Especifique a outra área/setor.');
+      if (state.profile === TECNICO) {
+        if (!$('#training').value) err($('[data-q=training]'), 'Informe quando ocorreu o seu último treinamento.');
+        if (!state.skill) err($('[data-q=skill]'), 'Avalie as suas habilidades técnicas de 1 a 5 estrelas.');
+      }
+    }
+    if (stepId === 'tarefas') {
+      if (!readThree('tempo').some(Boolean)) err($('[data-q=tempo]'), 'Informe pelo menos uma tarefa que mais consome o seu tempo.');
+      if (!readThree('esforco').some(Boolean)) err($('[data-q=esforco]'), 'Informe pelo menos uma tarefa que demanda maior frequência ou esforço físico.');
+    }
+    if (stepId === 'diagnostico') {
+      saveTaskState();
+      $$('#taskDetails .task-card').forEach(function (card, i) {
+        var d = state.taskState[card.dataset.key];
+        var name = '"' + state.tasks[i].task + '"';
+        if (!clean(d.problemas)) err($('[data-q=prob]', card), 'Descreva os principais problemas da tarefa ' + name + '.');
+        if (!d.importancia) err($('[data-q=imp]', card), 'Avalie a importância de melhorar a tarefa ' + name + '.');
+        if (!d.satisfacao) err($('[data-q=sat]', card), 'Avalie a satisfação com a solução atual da tarefa ' + name + '.');
+        if (!d.modo) err($('[data-q=modo]', card), 'Informe como a tarefa ' + name + ' é executada.');
+      });
+      if (state.profile === TECNICO && !clean($('#dataUse').value)) err($('[data-q=dataUse]'), 'Informe como os dados coletados em campo são registrados e guardados.');
+    }
+    if (stepId === 'tecnologias') {
+      $$('#techTable .tech-row').forEach(function (row) {
+        var i = Number(row.dataset.i);
+        var sel = $('input[type=radio]:checked', row);
+        if (!sel) err(row, 'Informe a situação de todas as tecnologias (' + C.tecnologias[i].tecnologia + ').');
+        else if (sel.value === '2' && !clean($('.tech-reason-input', row).value)) err(row, 'Informe por que nunca utilizou: ' + C.tecnologias[i].tecnologia + '.');
+      });
+      if (!clean($('#dataUse').value)) err($('[data-q=dataUse]'), 'Informe como os dados coletados em campo são registrados e guardados.');
+    }
+    return errs;
+  }
+
+  function showErrors(errs) {
+    clearErrors();
+    errs.forEach(function (e) { if (e.el) e.el.classList.add('invalid'); });
+    var extra = errs.length > 1 ? ' (há mais ' + (errs.length - 1) + ' pendência' + (errs.length > 2 ? 's' : '') + ' destacada' + (errs.length > 2 ? 's' : '') + ')' : '';
+    showMessage(errs[0].msg + extra);
+    if (errs[0].el) errs[0].el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  function showMessage(msg) { var box = $('#error'); box.textContent = msg; box.classList.add('show'); }
+  function clearErrors() {
+    $$('.invalid').forEach(function (el) { el.classList.remove('invalid'); });
+    $('#error').classList.remove('show');
+  }
+  function clearFieldError(target) {
+    var el = target.closest && target.closest('.invalid');
+    if (el) el.classList.remove('invalid');
+    if (!$('.invalid')) $('#error').classList.remove('show');
+  }
+
+  /* ---------------- navegação ---------------- */
+  function onEnter(stepId) {
+    if (stepId === 'identificacao') { renderAreas(); $('#tecnicoBlock').hidden = state.profile !== TECNICO; }
+    if (stepId === 'diagnostico') renderTaskDetails();
+  }
+
+  function updateProgress() {
+    var st = steps();
+    var n = state.stepIdx + 1, total = st.length;
+    var pct = Math.round(n / total * 100);
+    $('#progressBar').style.width = pct + '%';
+    $('#progressText').textContent = 'Etapa ' + n + ' de ' + total;
+    $('#progressPct').textContent = pct + '%';
+  }
+
+  function show() {
+    var st = steps();
+    var current = st[state.stepIdx];
+    $$('.step').forEach(function (s) { s.classList.toggle('active', s.dataset.step === current); });
+    var last = state.stepIdx === st.length - 1;
+    $('#prevBtn').style.visibility = state.stepIdx === 0 ? 'hidden' : 'visible';
+    $('#nextBtn').hidden = last;
+    $('#submitBtn').hidden = !last;
+    clearErrors();
+    updateProgress();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function next() {
+    var st = steps();
+    var errs = validate(st[state.stepIdx]);
+    if (errs.length) { showErrors(errs); return; }
+    if (st[state.stepIdx] === 'diagnostico') saveTaskState();
+    state.stepIdx = Math.min(state.stepIdx + 1, st.length - 1);
+    onEnter(st[state.stepIdx]);
+    show();
+  }
+
+  function prev() {
+    var st = steps();
+    if (st[state.stepIdx] === 'diagnostico') saveTaskState();
+    state.stepIdx = Math.max(0, state.stepIdx - 1);
+    onEnter(st[state.stepIdx]);
+    show();
+  }
+
+  /* ---------------- envio ---------------- */
+  function collect() {
+    saveTaskState();
+    var isTec = state.profile === TECNICO;
+    var isAna = state.profile === ANALISTA;
+    var areas = checkedAreas();
+    return {
+      perfil: state.profile,
+      areas: areas,
+      areaOutro: areas.some(isOther) ? clean($('#areaOther').value) : '',
+      treinamento: isTec ? $('#training').value : '',
+      habilidadeTech: isTec ? state.skill : '',
+      tarefasTempo: readThree('tempo'),
+      tarefasEsforco: readThree('esforco'),
+      detalhesTarefas: buildTasks().map(function (t) {
+        var d = state.taskState[t.key] || {};
+        return {
+          chave: t.key, tarefa: t.task,
+          problemas: String(d.problemas || '').trim(),
+          importancia: d.importancia, satisfacao: d.satisfacao,
+          modo: d.modo || '', improvisada: String(d.improvisada || '').trim()
+        };
+      }),
+      barreirasInfra: $$('input[name=infra]:checked').map(function (x) { return x.value; }),
+      barreiraEquipamento: $('#infraEquipBox').hidden ? '' : clean($('#infraEquip').value),
+      tecnologias: isAna ? C.tecnologias.map(function (_, i) {
+        var sel = $('input[name=tech_' + i + ']:checked');
+        var v = sel ? Number(sel.value) : null;
+        var row = $('.tech-row[data-i="' + i + '"]');
+        return { indice: i, situacao: v, motivo: v === 2 ? clean($('.tech-reason-input', row).value) : '' };
+      }) : [],
+      dadosCampo: $('#dataUse').value.trim(),
+      ferramentaIdeal: $('#idea').value.trim(),
+      mudancaAmanha: $('#smallChange').value.trim(),
+      comentarios: $('#comments').value.trim()
+    };
+  }
+
+  function submitForm() {
+    if (state.sending) return;
+    var st = steps();
+    for (var i = 0; i < st.length; i++) {
+      var errs = validate(st[i]);
+      if (errs.length) {
+        if (i !== state.stepIdx) { state.stepIdx = i; onEnter(st[i]); show(); }
+        showErrors(errs);
+        return;
+      }
+    }
+    if (!(window.google && google.script && google.script.run)) {
+      showMessage('Pré-visualização local: o envio só funciona quando o formulário é aberto pela URL do Aplicativo da Web.');
+      return;
+    }
+    var payload = collect();
+    setSending(true);
+    google.script.run
+      .withSuccessHandler(function (res) {
+        setSending(false);
+        $('#survey').hidden = true;
+        $('#progressWrap').hidden = true;
+        $('#responseId').textContent = res.responseId;
+        $('#successScreen').hidden = false;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      })
+      .withFailureHandler(function (err) {
+        setSending(false);
+        showMessage('Não foi possível registrar a resposta: ' + (err && err.message ? err.message : String(err)));
+      })
+      .submitResponse(payload);
+  }
+
+  function setSending(on) {
+    state.sending = on;
+    $('#loading').hidden = !on;
+    ['#prevBtn', '#submitBtn'].forEach(function (s) { $(s).disabled = on; });
+  }
+
+  /* ---------------- eventos ---------------- */
+  function bind() {
+    var form = $('#survey');
+    form.addEventListener('submit', function (e) { e.preventDefault(); });
+    form.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type === 'text') e.preventDefault();
+    });
+
+    $('#nextBtn').addEventListener('click', next);
+    $('#prevBtn').addEventListener('click', prev);
+    $('#submitBtn').addEventListener('click', submitForm);
+
+    $$('input[name=perfil]').forEach(function (r) { r.addEventListener('change', onProfileChange); });
+    $('#areaSearch').addEventListener('input', filterAreas);
+    $('#areaList').addEventListener('change', toggleOtherArea);
+
+    // Estrelas: clique define a nota; passar o mouse mostra a prévia do preenchimento.
+    var stars = $('#skillStars');
+    stars.addEventListener('click', function (e) {
+      var b = e.target.closest('.star');
+      if (b) { setSkill(Number(b.dataset.v)); clearFieldError(b); }
+    });
+    stars.addEventListener('mouseover', function (e) {
+      var b = e.target.closest('.star');
+      if (b) paintStars(Number(b.dataset.v));
+    });
+    stars.addEventListener('mouseleave', function () { paintStars(state.skill); });
+    stars.addEventListener('keydown', function (e) {
+      var delta = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key];
+      if (!delta) return;
+      e.preventDefault();
+      var v = Math.min(5, Math.max(1, (state.skill || 0) + delta));
+      setSkill(v);
+      clearFieldError(stars);
+      $('.star[data-v="' + v + '"]', stars).focus();
+    });
+
+    // Controles deslizantes: só contam como respondidos depois de tocados.
+    var details = $('#taskDetails');
+    details.addEventListener('input', function (e) { if (e.target.classList.contains('range')) touchSlider(e.target); });
+    details.addEventListener('click', function (e) { if (e.target.classList.contains('range')) touchSlider(e.target); });
+    details.addEventListener('keydown', function (e) {
+      if (e.target.classList.contains('range') && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); touchSlider(e.target); }
+    });
+
+    $('#techTable').addEventListener('change', function (e) {
+      if (e.target.type === 'radio') onTechChange(e.target);
+    });
+
+    ['input', 'change', 'click'].forEach(function (ev) {
+      form.addEventListener(ev, function (e) { clearFieldError(e.target); });
+    });
+  }
+
+  function init() {
+    state = freshState();
+    renderTraining();
+    renderStars();
+    setSkill(0);
+    renderInfra();
+    renderTech();
+    bind();
+    show();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+
+</body>
+</html>
