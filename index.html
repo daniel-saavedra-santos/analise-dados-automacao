@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Análise — Levantamento de Automação</title>
+  <?!= include('styles'); ?>
+</head>
+<body>
+<div class="topbar"></div>
+<div class="shell">
+
+  <header class="brand">
+    <div>
+      <p class="eyebrow">Embrapa Caprinos e Ovinos</p>
+      <h1>Painel de Análise — Levantamento de Deficiências Tecnológicas em Automação</h1>
+      <p class="sub" id="metaLine">Carregando dados…</p>
+    </div>
+    <div class="brand-actions">
+      <a class="btn btn-secondary btn-sm" id="linkPlanilha" href="#" target="_blank" rel="noopener" hidden>Abrir planilha</a>
+      <button type="button" class="btn btn-primary btn-sm" id="reloadBtn">Atualizar dados</button>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs" role="tablist">
+    <button type="button" role="tab" data-tab="visao" class="active">Visão geral</button>
+    <button type="button" role="tab" data-tab="matriz">Importância × Satisfação</button>
+    <button type="button" role="tab" data-tab="modo">Modo de execução</button>
+    <button type="button" role="tab" data-tab="barreiras">Barreiras</button>
+    <button type="button" role="tab" data-tab="tecnologias">Tecnologias</button>
+    <button type="button" role="tab" data-tab="abertas">Respostas abertas</button>
+    <button type="button" role="tab" data-tab="categorias">Categorizar tarefas</button>
+  </nav>
+
+  <div class="filters" id="filters">
+    <label>Perfil
+      <select id="fPerfil">
+        <option value="">Todos</option>
+        <option value="Assistente/Técnico">Assistente/Técnico</option>
+        <option value="Analista/Pesquisador">Analista/Pesquisador</option>
+      </select>
+    </label>
+    <label>Área/setor
+      <select id="fArea"><option value="">Todas</option></select>
+    </label>
+    <label class="f-tarefas">Origem da tarefa
+      <select id="fOrigem">
+        <option value="">Tempo e esforço</option>
+        <option value="tempo">Mais consome tempo</option>
+        <option value="esforco">Maior frequência/esforço físico</option>
+      </select>
+    </label>
+    <label class="f-matriz">Mínimo de citações
+      <select id="fMinCit">
+        <option value="1">1 ou mais</option>
+        <option value="2">2 ou mais</option>
+        <option value="3">3 ou mais</option>
+        <option value="5">5 ou mais</option>
+      </select>
+    </label>
+    <span class="filter-count" id="filterCount"></span>
+  </div>
+
+  <div class="alert" id="alert" hidden></div>
+  <div class="loading" id="loading">Carregando dados da planilha…</div>
+
+  <main id="main" hidden>
+
+    <!-- Visão geral -->
+    <section class="tab-panel" data-panel="visao">
+      <div class="tiles" id="tiles"></div>
+      <div class="grid-2">
+        <div class="card chart-card" data-chart="areas"></div>
+        <div class="card chart-card" data-chart="treinamento"></div>
+      </div>
+      <div class="grid-2">
+        <div class="card chart-card" data-chart="habilidade"></div>
+        <div class="card chart-card" data-chart="topTarefas"></div>
+      </div>
+    </section>
+
+    <!-- Matriz -->
+    <section class="tab-panel" data-panel="matriz" hidden>
+      <div class="card chart-card" data-chart="matriz"></div>
+      <div class="card">
+        <h2 class="card-title">Como ler a matriz</h2>
+        <div class="howto">
+          <p>Cada bolha é uma tarefa (ou categoria de tarefas). A posição mostra a <strong>média</strong> das notas dadas por quem a citou; o tamanho mostra quantas vezes ela foi citada. As linhas no valor 3 (meio da escala) dividem quatro quadrantes:</p>
+          <ul>
+            <li><strong>Prioridade para automação</strong> — importância alta e satisfação baixa: a solução atual não atende e melhorar faz diferença.</li>
+            <li><strong>Manter e aprimorar</strong> — importância alta e satisfação alta.</li>
+            <li><strong>Monitorar</strong> — importância baixa e satisfação baixa.</li>
+            <li><strong>Baixa prioridade</strong> — importância baixa e satisfação alta.</li>
+          </ul>
+          <p>O <strong>índice de oportunidade</strong> = importância + (importância − satisfação), quando a diferença é positiva (adaptado de Ulwick, 2002). Quanto maior, maior a prioridade.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modo de execução -->
+    <section class="tab-panel" data-panel="modo" hidden>
+      <div class="card chart-card" data-chart="modo"></div>
+    </section>
+
+    <!-- Barreiras -->
+    <section class="tab-panel" data-panel="barreiras" hidden>
+      <div class="grid-2 grid-wide-left">
+        <div class="card chart-card" data-chart="barreiras"></div>
+        <div class="card">
+          <h2 class="card-title">Equipamentos ausentes citados</h2>
+          <p class="card-note" id="equipNote"></p>
+          <ul class="text-list" id="equipList"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tecnologias -->
+    <section class="tab-panel" data-panel="tecnologias" hidden>
+      <p class="panel-note">Pergunta respondida apenas por Analistas/Pesquisadores.</p>
+      <div class="card chart-card" data-chart="tecnologias"></div>
+      <div class="card chart-card" data-chart="tecIndicadores"></div>
+      <div class="card">
+        <h2 class="card-title">Por que nunca utilizou? (código 2)</h2>
+        <ul class="text-list" id="motivosList"></ul>
+      </div>
+    </section>
+
+    <!-- Respostas abertas -->
+    <section class="tab-panel" data-panel="abertas" hidden>
+      <div class="card">
+        <div class="open-controls">
+          <label>Pergunta
+            <select id="openQuestion"></select>
+          </label>
+          <label class="grow">Buscar
+            <input type="search" id="openSearch" placeholder="Filtrar por palavra…">
+          </label>
+          <button type="button" class="btn btn-secondary btn-sm" id="openCsv">Baixar CSV</button>
+        </div>
+        <p class="card-note" id="openCount"></p>
+        <ul class="text-list open-list" id="openList"></ul>
+      </div>
+    </section>
+
+    <!-- Categorização -->
+    <section class="tab-panel" data-panel="categorias" hidden>
+      <div class="card">
+        <h2 class="card-title">Agrupar tarefas parecidas</h2>
+        <div class="howto">
+          <p>As tarefas são digitadas livremente, então a mesma atividade pode aparecer com nomes diferentes ("ordenha", "ordenha das cabras", "ordenhar"). Para que a matriz e os rankings fiquem corretos, agrupe-as em categorias:</p>
+          <ol>
+            <li>Clique em <strong>Atualizar lista de tarefas</strong>, que atualiza a aba <em>Categorias_tarefas</em> da planilha de análises.</li>
+            <li>Abra a planilha de análises e escreva uma <strong>categoria</strong> na coluna D de cada tarefa (ex.: "Ordenha"). Tarefas com a mesma categoria são somadas.</li>
+            <li>Volte aqui e clique em <strong>Atualizar dados</strong>. Tarefas sem categoria aparecem com o próprio nome.</li>
+          </ol>
+          <p>Categorias já preenchidas são mantidas quando a lista é atualizada.</p>
+        </div>
+        <div class="cat-actions">
+          <button type="button" class="btn btn-primary" id="catBtn">Atualizar lista de tarefas</button>
+          <a class="btn btn-secondary" id="linkAnalise" href="#" target="_blank" rel="noopener" hidden>Abrir planilha de análises</a>
+        </div>
+        <p class="card-note" id="catMsg"></p>
+      </div>
+      <div class="card chart-card" data-chart="categoriasTabela"></div>
+    </section>
+  </main>
+
+  <footer class="footer">Levantamento de P&amp;DI · Embrapa Caprinos e Ovinos</footer>
+</div>
+
+<?!= include('app'); ?>
+</body>
+</html>
